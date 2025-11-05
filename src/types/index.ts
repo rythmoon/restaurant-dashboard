@@ -1,31 +1,26 @@
-export interface MenuItem {
+export interface Customer {
   id: string;
   name: string;
-  category: string;
-  price: number;
-  description?: string;
-  available: boolean;
-  type: 'food' | 'drink';
+  phone: string;
+  address?: string;
 }
 
-export interface OrderItem {
-  menuItem: MenuItem;
-  quantity: number;
-  notes?: string;
+export interface OrderSource {
+  type: 'phone' | 'walk-in' | 'delivery' | 'reservation';
+  customer?: Customer;
+  deliveryAddress?: string;
 }
 
 export interface Order {
   id: string;
-  tableNumber: number;
+  tableNumber?: number; // Opcional para pedidos por teléfono
   items: OrderItem[];
-  status: 'pending' | 'preparing' | 'ready' | 'served' | 'paid';
+  status: 'pending' | 'preparing' | 'ready' | 'served' | 'paid' | 'delivered';
   createdAt: Date;
   total: number;
   customerName?: string;
-}
-
-export interface Table {
-  number: number;
-  status: 'available' | 'occupied' | 'reserved';
-  orderId?: string;
+  phone?: string;
+  address?: string;
+  source: OrderSource;
+  notes?: string;
 }
