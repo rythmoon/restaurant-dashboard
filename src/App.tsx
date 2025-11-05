@@ -3,9 +3,10 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import StatsCards from './components/dashboard/StatsCards';
 import OrdersManager from './components/orders/OrdersManager';
 import MenuManager from './components/menu/MenuManager';
+import OrderReception from './components/orders/OrderReception';
 
 function App() {
-  const [activeTab, setActiveTab] = React.useState('dashboard');
+  const [activeTab, setActiveTab] = React.useState('reception');
 
   return (
     <DashboardLayout>
@@ -14,10 +15,10 @@ function App() {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             {[
+              { id: 'reception', name: 'Recepción' },
               { id: 'dashboard', name: 'Dashboard' },
               { id: 'orders', name: 'Órdenes' },
               { id: 'menu', name: 'Menú' },
-              { id: 'tables', name: 'Mesas' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -36,6 +37,7 @@ function App() {
       </div>
 
       {/* Tab Content */}
+      {activeTab === 'reception' && <OrderReception />}
       {activeTab === 'dashboard' && (
         <div>
           <StatsCards />
@@ -44,18 +46,17 @@ function App() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Órdenes Recientes
               </h3>
-              {/* Aquí iría el componente de órdenes recientes */}
+              {/* Componente de órdenes recientes */}
             </div>
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Productos Populares
               </h3>
-              {/* Aquí iría el componente de productos populares */}
+              {/* Componente de productos populares */}
             </div>
           </div>
         </div>
       )}
-
       {activeTab === 'orders' && <OrdersManager />}
       {activeTab === 'menu' && <MenuManager />}
     </DashboardLayout>
