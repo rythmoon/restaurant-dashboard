@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import { Phone, User, MapPin, Plus, Trash2, Search } from 'lucide-react';
-import { MenuItem, OrderItem, Customer, OrderSource } from '../../types';
-import OrderTicket from './OrderTicket';
+import { MenuItem, OrderItem, Customer } from '../../types';
 
 const OrderReception: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'phone' | 'walk-in' | 'delivery'>('phone');
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [phone, setPhone] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Datos de ejemplo del menú - luego vendrán de Google Sheets
+  // Datos de ejemplo del menú
   const menuItems: MenuItem[] = [
     // Entradas
     { id: 'E001', name: 'Papa a la Huancaina', category: 'Entradas', price: 18.00, type: 'food', available: true },
@@ -82,9 +80,8 @@ const OrderReception: React.FC = () => {
   };
 
   const createOrder = () => {
-    const orderSource: OrderSource = {
+    const orderSource = {
       type: activeTab,
-      customer: customer || undefined,
     };
 
     if (activeTab === 'delivery') {
@@ -97,8 +94,8 @@ const OrderReception: React.FC = () => {
       status: 'pending' as const,
       createdAt: new Date(),
       total: getTotal(),
-      customerName: customerName || customer?.name,
-      phone: phone || customer?.phone,
+      customerName: customerName,
+      phone: phone,
       address: activeTab === 'delivery' ? address : undefined,
       source: orderSource,
       notes: orderNotes,
