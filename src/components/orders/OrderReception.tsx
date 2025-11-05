@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, User, MapPin, Plus, Trash2, Search } from 'lucide-react';
-import { MenuItem, OrderItem, Customer } from '../../types';
+import { MenuItem, OrderItem } from '../../types';
 
 const OrderReception: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'phone' | 'walk-in' | 'delivery'>('phone');
@@ -80,7 +80,7 @@ const OrderReception: React.FC = () => {
   };
 
   const createOrder = () => {
-    const orderSource = {
+    const orderSource: any = {
       type: activeTab,
     };
 
