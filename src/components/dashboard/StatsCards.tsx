@@ -8,32 +8,28 @@ const StatsCards: React.FC = () => {
       value: '12',
       change: '+2',
       icon: Coffee,
-      color: 'from-primary-500 to-orange-500',
-      bgColor: 'bg-gradient-to-br from-primary-50 to-orange-50',
+      color: 'from-orange-500 to-red-500',
     },
     {
       title: 'Clientes Hoy',
       value: '48',
       change: '+8',
       icon: Users,
-      color: 'from-secondary-500 to-amber-500',
-      bgColor: 'bg-gradient-to-br from-secondary-50 to-amber-50',
+      color: 'from-amber-500 to-yellow-500',
     },
     {
       title: 'Tiempo Promedio',
       value: '18min',
       change: '-2min',
       icon: Clock,
-      color: 'from-success-500 to-emerald-500',
-      bgColor: 'bg-gradient-to-br from-success-50 to-emerald-50',
+      color: 'from-green-500 to-emerald-500',
     },
     {
       title: 'Ingresos Hoy',
       value: 'S/ 1,240',
       change: '+15%',
       icon: DollarSign,
-      color: 'from-warm-600 to-warm-700',
-      bgColor: 'bg-gradient-to-br from-warm-50 to-warm-100',
+      color: 'from-gray-600 to-gray-700',
     },
   ];
 
@@ -42,28 +38,25 @@ const StatsCards: React.FC = () => {
       {stats.map((stat, index) => (
         <div 
           key={index} 
-          className="stat-card group animate-fade-in"
-          style={{ animationDelay: `${index * 100}ms` }}
+          className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-white/20"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-warm-600 mb-1">{stat.title}</p>
+              <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
               <div className="flex items-baseline space-x-2">
-                <p className="text-2xl font-bold text-warm-900">{stat.value}</p>
-                <span className="text-xs font-semibold text-success-600 bg-success-50 px-2 py-1 rounded-full flex items-center">
+                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center">
                   <TrendingUp size={10} className="mr-1" />
                   {stat.change}
                 </span>
               </div>
             </div>
-            <div className={`p-3 rounded-xl ${stat.bgColor} group-hover:scale-110 transition-transform duration-300`}>
-              <div className={`w-6 h-6 ${stat.color} bg-gradient-to-br rounded-full flex items-center justify-center`}>
-                <stat.icon className="h-4 w-4 text-white" />
-              </div>
+            <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color}`}>
+              <stat.icon className="h-6 w-6 text-white" />
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-warm-100">
-            <div className="w-full bg-warm-100 rounded-full h-1.5">
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="w-full bg-gray-100 rounded-full h-1.5">
               <div 
                 className={`h-1.5 rounded-full bg-gradient-to-r ${stat.color} transition-all duration-1000`}
                 style={{ width: `${70 + (index * 10)}%` }}
