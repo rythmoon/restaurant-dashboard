@@ -1,89 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
-  
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-    scroll-behavior: smooth;
-  }
-  
   body {
-    margin: 0;
-    padding: 0;
     background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 50%, #ffedd5 100%);
     min-height: 100vh;
-  }
-
-  /* Scrollbar personalizado */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: #ffedd5;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #fdba74;
-    border-radius: 3px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: #f97316;
+    font-family: 'Inter', sans-serif;
   }
 }
 
-@layer components {
-  .glass-card {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-soft;
-  }
-  
-  .glass-card-hover {
-    @apply glass-card hover:bg-white/90 hover:shadow-medium transition-all duration-300;
-  }
-  
-  .gradient-bg {
-    @apply bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50;
-  }
-  
-  .warm-gradient {
-    @apply bg-gradient-to-r from-primary-500 to-secondary-500;
-  }
-  
-  .text-gradient {
-    @apply warm-gradient bg-clip-text text-transparent;
-  }
-  
-  .btn-primary {
-    @apply warm-gradient text-white px-6 py-3 rounded-xl font-semibold shadow-soft hover:shadow-medium transform hover:scale-105 transition-all duration-300;
-  }
-  
-  .btn-secondary {
-    @apply bg-white text-warm-700 px-6 py-3 rounded-xl font-semibold border border-warm-200 shadow-soft hover:shadow-medium hover:border-primary-300 transition-all duration-300;
-  }
-  
-  .card-hover {
-    @apply transform hover:scale-105 transition-all duration-300 cursor-pointer;
-  }
-  
-  .stat-card {
-    @apply glass-card rounded-2xl p-6 hover:shadow-medium transition-all duration-300;
-  }
-  
-  .menu-card {
-    @apply glass-card rounded-2xl p-4 hover:shadow-medium transition-all duration-300 border-l-4 border-primary-500;
-  }
-}
-
-/* Estilos para impresión de tickets */
+/* Estilos para impresión */
 @media print {
   @page {
     margin: 0;
@@ -93,7 +22,6 @@
   body {
     font-family: 'system-ui', 'Courier New', monospace !important;
     font-size: 12px !important;
-    line-height: 1.2 !important;
     background: white !important;
   }
   
@@ -108,14 +36,4 @@
     background: white !important;
     color: black !important;
   }
-}
-
-/* Animaciones personalizadas */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.float-animation {
-  animation: float 3s ease-in-out infinite;
 }
