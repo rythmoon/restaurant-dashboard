@@ -11,6 +11,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     if (printContent) {
       const printWindow = window.open('', '_blank', 'width=80mm,height=600,scrollbars=no,toolbar=no,location=no');
       if (printWindow) {
+        const ticketContent = generateTicketContent(order);
         printWindow.document.write(`
           <!DOCTYPE html>
           <html>
@@ -74,7 +75,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
               </style>
             </head>
             <body onload="window.print(); window.close();">
-              ${printContent.innerHTML}
+              ${ticketContent}
             </body>
           </html>
         `);
@@ -93,6 +94,102 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return sourceMap[sourceType] || sourceType;
   };
 
+  const generateTicketContent = (order: Order) => {
+    const sourceText = getSourceText(order.source.type);
+    
+    return `
+      <div class="ticket">
+        <div class="center">
+          <div class="bold">SABORES & SAZÓN</div>
+          <div>Av. Principal 123 - Lima</div>
+          <div>Tel: +51 123 456 789</div>
+          <div class="divider"></div>
+        </div>
+        
+        <div class="item-row">
+          <span class="bold">ORDEN:</span>
+          <span>${order.id}</span>
+        </div>
+        <div class="item-row">
+          <span class="bold">TIPO:</span>
+          <span>${sourceText}</span>
+        </div>
+        <div class="item-row">
+          <span class="bold">FECHA:</span>
+          <span>${order.createdAt.toLocaleDateString()}</span>
+        </div>
+        <div class="item-row">
+          <span class="bold">HORA:</span>
+          <span>${order.createdAt.toLocaleTimeString()}</span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="item-row bold">
+          <span>CLIENTE:</span>
+          <span>${order.customerName}</span>
+        </div>
+        <div class="item-row">
+          <span>TELÉFONO:</span>
+          <span>${order.phone}</span>
+        </div>
+        ${order.tableNumber ? `<div class="item-row">
+          <span>MESA:</span>
+          <span>${order.tableNumber}</span>
+        </div>` : ''}
+        ${order.address ? `<div class="item-row">
+          <span>DIRECCIÓN:</span>
+          <span>${order.address}</span>
+        </div>` : ''}
+        
+        <div class="divider"></div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Cant</th>
+              <th>Descripción</th>
+              <th style="text-align: right;">Precio</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${order.items.map(item => `
+              <tr>
+                <td>${item.quantity}x</td>
+                <td>
+                  ${item.menuItem.name}
+                  ${item.notes ? `<div class="notes">Nota: ${item.notes}</div>` : ''}
+                </td>
+                <td style="text-align: right;">S/ ${(item.menuItem.price * item.quantity).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        ${order.notes ? `
+          <div class="divider"></div>
+          <div class="bold">NOTAS DEL PEDIDO:</div>
+          <div>${order.notes}</div>
+        ` : ''}
+        
+        <div class="divider"></div>
+        <div class="item-row total bold">
+          <span>TOTAL:</span>
+          <span>S/ ${order.total.toFixed(2)}</span>
+        </div>
+        
+        <div class="divider"></div>
+        <div class="center">
+          <div class="bold">¡GRACIAS POR SU PEDIDO!</div>
+          <div>*** ${sourceText} ***</div>
+          <div style="margin-top: 10px; font-size: 10px;">
+            ${new Date().toLocaleString()}
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
   return (
     <>
       {/* Botón para imprimir - oculto pero funcional */}
@@ -105,97 +202,9 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         Imprimir Ticket {order.id}
       </button>
 
-      {/* Contenido del ticket optimizado para POS */}
+      {/* Contenido del ticket optimizado para POS - Solo para referencia */}
       <div id={`ticket-${order.id}`} className="hidden">
-        <div className="ticket">
-          <div className="center">
-            <div className="bold">SABORES & SAZÓN</div>
-            <div>Av. Principal 123 - Lima</div>
-            <div>Tel: +51 123 456 789</div>
-            <div className="divider"></div>
-          </div>
-          
-          <div className="item-row">
-            <span className="bold">ORDEN:</span>
-            <span>${order.id}</span>
-          </div>
-          <div className="item-row">
-            <span className="bold">TIPO:</span>
-            <span>${getSourceText(order.source.type)}</span>
-          </div>
-          <div className="item-row">
-            <span className="bold">FECHA:</span>
-            <span>${order.createdAt.toLocaleDateString()}</span>
-          </div>
-          <div className="item-row">
-            <span className="bold">HORA:</span>
-            <span>${order.createdAt.toLocaleTimeString()}</span>
-          </div>
-          
-          <div className="divider"></div>
-          
-          <div className="item-row bold">
-            <span>CLIENTE:</span>
-            <span>${order.customerName}</span>
-          </div>
-          <div className="item-row">
-            <span>TELÉFONO:</span>
-            <span>${order.phone}</span>
-          </div>
-          ${order.tableNumber ? `<div className="item-row">
-            <span>MESA:</span>
-            <span>${order.tableNumber}</span>
-          </div>` : ''}
-          ${order.address ? `<div className="item-row">
-            <span>DIRECCIÓN:</span>
-            <span>${order.address}</span>
-          </div>` : ''}
-          
-          <div className="divider"></div>
-          
-          <table>
-            <thead>
-              <tr>
-                <th>Cant</th>
-                <th>Descripción</th>
-                <th style="text-align: right;">Precio</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map(item => `
-                <tr>
-                  <td>${item.quantity}x</td>
-                  <td>
-                    ${item.menuItem.name}
-                    ${item.notes ? `<div class="notes">Nota: ${item.notes}</div>` : ''}
-                  </td>
-                  <td style="text-align: right;">S/ ${(item.menuItem.price * item.quantity).toFixed(2)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          
-          ${order.notes ? `
-            <div className="divider"></div>
-            <div className="bold">NOTAS DEL PEDIDO:</div>
-            <div>${order.notes}</div>
-          ` : ''}
-          
-          <div className="divider"></div>
-          <div className="item-row total bold">
-            <span>TOTAL:</span>
-            <span>S/ ${order.total.toFixed(2)}</span>
-          </div>
-          
-          <div className="divider"></div>
-          <div className="center">
-            <div className="bold">¡GRACIAS POR SU PEDIDO!</div>
-            <div>*** ${getSourceText(order.source.type)} ***</div>
-            <div style="margin-top: 10px; font-size: 10px;">
-              ${new Date().toLocaleString()}
-            </div>
-          </div>
-        </div>
+        <div>Ticket content for printing</div>
       </div>
     </>
   );
