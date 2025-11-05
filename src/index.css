@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-family: 'system-ui', sans-serif;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #f9fafb;
+  }
+}
+
+/* Estilos para impresión de tickets */
+@media print {
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+  
+  body {
+    font-family: 'system-ui', 'Courier New', monospace !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-ticket {
+    width: 80mm !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+}
