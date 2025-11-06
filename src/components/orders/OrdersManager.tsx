@@ -37,18 +37,6 @@ const OrdersManager: React.FC = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const getStatusText = (status: Order['status']) => {
-    const statusMap = {
-      pending: 'Pendiente',
-      preparing: 'Preparando',
-      ready: 'Listo',
-      served: 'Servido',
-      paid: 'Pagado',
-      delivered: 'Entregado',
-    };
-    return statusMap[status] || status;
-  };
-
   const getSourceText = (sourceType: Order['source']['type']) => {
     const sourceMap = {
       'phone': 'Teléfono',
