@@ -82,14 +82,6 @@ const OrderReception: React.FC = () => {
     setCart(prev => prev.filter(item => item.menuItem.id !== itemId));
   };
 
-  const updateItemNotes = (itemId: string, notes: string) => {
-    setCart(prev =>
-      prev.map(item =>
-        item.menuItem.id === itemId ? { ...item, notes } : item
-      )
-    );
-  };
-
   const getTotal = () => {
     return cart.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0);
   };
