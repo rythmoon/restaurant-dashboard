@@ -1,7 +1,151 @@
-// ... (imports se mantienen igual)
+import React, { useState } from 'react';
+import { Phone, User, MapPin, Plus, Trash2, Search, Check, Printer } from 'lucide-react';
+import { MenuItem, OrderItem, OrderSource, Order } from '../../types';
+import OrderTicket from './OrderTicket';
+
+// Simulamos almacenamiento en memoria
+let ordersStorage: Order[] = [];
 
 const OrderReception: React.FC = () => {
-  // ... (estados se mantienen igual)
+  const [activeTab, setActiveTab] = useState<'phone' | 'walk-in' | 'delivery'>('phone');
+  const [customerName, setCustomerName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [orderNotes, setOrderNotes] = useState('');
+  const [cart, setCart] = useState<OrderItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [lastOrder, setLastOrder] = useState<Order | null>(null);
+
+  // Menú del día compacto
+  const menuDelDia: { [key: string]: MenuItem[] } = {
+    '🥗 Entradas': [
+      { id: 'E001', name: 'Papa a la Huancaina', category: 'Entradas', price: 18.00, type: 'food', available: true, description: 'Papa amarilla con salsa huancaina' },
+      { id: 'E002', name: 'Causa Rellena', category: 'Entradas', price: 16.00, type: 'food', available: true, description: 'Causa de pollo o atún' },
+      { id: 'E003', name: 'Tequeños', category: 'Entradas', price: 15.00, type: 'food', available: true, description: '12 unidades con salsa de ají' },
+      { id: 'E004', name: 'Anticuchos', category: 'Entradas', price: 22.00, type: 'food', available: true, description: 'Brochetas de corazón' },
+    ],
+    '🍽️ Platos de Fondo': [
+      { id: 'P001', name: 'Lomo Saltado de Pollo', category: 'Platos de Fondo', price: 28.00, type: 'food', available: true, description: 'Salteado con cebolla, tomate' },
+      { id: 'P002', name: 'Lomo Saltado de Res', category: 'Platos de Fondo', price: 32.00, type: 'food', available: true, description: 'Salteado con cebolla, tomate' },
+      { id: 'P003', name: 'Arroz con Mariscos', category: 'Platos de Fondo', price: 35.00, type: 'food', available: true, description: 'Arroz verde con mix de mariscos' },
+      { id: 'P004', name: 'Aji de Gallina', category: 'Platos de Fondo', price: 25.00, type: 'food', available: true, description: 'Pollo en salsa de ají amarillo' },
+    ],
+    '🥤 Bebidas': [
+      { id: 'B001', name: 'Inca Kola 500ml', category: 'Bebidas', price: 6.00, type: 'drink', available: true },
+      { id: 'B002', name: 'Coca Cola 500ml', category: 'Bebidas', price: 6.00, type: 'drink', available: true },
+      { id: 'B003', name: 'Chicha Morada', category: 'Bebidas', price: 8.00, type: 'drink', available: true },
+      { id: 'B004', name: 'Limonada', category: 'Bebidas', price: 7.00, type: 'drink', available: true },
+    ]
+  };
+
+  // Todos los items para búsqueda
+  const allMenuItems = Object.values(menuDelDia).flat();
+
+  const filteredItems = allMenuItems.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const addToCart = (menuItem: MenuItem) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.menuItem.id === menuItem.id);
+      if (existing) {
+        return prev.map(item =>
+          item.menuItem.id === menuItem.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { menuItem, quantity: 1, notes: '' }];
+    });
+  };
+
+  const updateQuantity = (itemId: string, quantity: number) => {
+    if (quantity === 0) {
+      removeFromCart(itemId);
+      return;
+    }
+    setCart(prev =>
+      prev.map(item =>
+        item.menuItem.id === itemId ? { ...item, quantity } : item
+      )
+    );
+  };
+
+  const removeFromCart = (itemId: string) => {
+    setCart(prev => prev.filter(item => item.menuItem.id !== itemId));
+  };
+
+  const updateItemNotes = (itemId: string, notes: string) => {
+    setCart(prev =>
+      prev.map(item =>
+        item.menuItem.id === itemId ? { ...item, notes } : item
+      )
+    );
+  };
+
+  const getTotal = () => {
+    return cart.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0);
+  };
+
+  const saveOrderToStorage = (order: Order) => {
+    ordersStorage.push(order);
+    console.log('Pedido guardado:', order);
+    console.log('Total de pedidos:', ordersStorage.length);
+  };
+
+  const createOrder = () => {
+    const orderSource: OrderSource = {
+      type: activeTab,
+      ...(activeTab === 'delivery' && { deliveryAddress: address })
+    };
+
+    const newOrder: Order = {
+      id: `ORD-${Date.now()}`,
+      items: [...cart],
+      status: 'pending',
+      createdAt: new Date(),
+      total: getTotal(),
+      customerName: customerName,
+      phone: phone,
+      address: activeTab === 'delivery' ? address : undefined,
+      source: orderSource,
+      notes: orderNotes,
+    };
+
+    setLastOrder(newOrder);
+    setShowConfirmation(true);
+    
+    return newOrder;
+  };
+
+  const confirmOrder = () => {
+    if (lastOrder) {
+      saveOrderToStorage(lastOrder);
+      
+      // Limpiar el formulario
+      setCart([]);
+      setCustomerName('');
+      setPhone('');
+      setAddress('');
+      setOrderNotes('');
+      setShowConfirmation(false);
+      
+      // Activar impresión automática
+      setTimeout(() => {
+        const printButton = document.querySelector(`[data-order-id="${lastOrder.id}"]`) as HTMLButtonElement;
+        if (printButton) {
+          printButton.click();
+        }
+      }, 500);
+    }
+  };
+
+  const cancelOrder = () => {
+    setShowConfirmation(false);
+    setLastOrder(null);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
@@ -9,7 +153,33 @@ const OrderReception: React.FC = () => {
       {showConfirmation && lastOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto">
-            {/* ... contenido del modal igual pero con textos responsive */}
+            <div className="text-center">
+              <Check className="h-10 w-10 sm:h-12 sm:w-12 text-green-500 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">¿Confirmar Pedido?</h3>
+              <p className="text-gray-600 mb-3 sm:mb-4 text-sm">
+                Pedido <strong>{lastOrder.id}</strong> para <strong>{lastOrder.customerName}</strong>
+              </p>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                <p className="font-semibold text-base sm:text-lg">Total: S/ {lastOrder.total.toFixed(2)}</p>
+                <p className="text-xs sm:text-sm text-gray-600">{lastOrder.items.length} items</p>
+              </div>
+              <div className="flex space-x-2 sm:space-x-3">
+                <button
+                  onClick={cancelOrder}
+                  className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                >
+                  Revisar
+                </button>
+                <button
+                  onClick={confirmOrder}
+                  className="flex-1 px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1 sm:space-x-2 text-sm"
+                >
+                  <Printer size={14} className="sm:hidden" />
+                  <Printer size={16} className="hidden sm:block" />
+                  <span>Confirmar</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -34,7 +204,31 @@ const OrderReception: React.FC = () => {
               <div className="text-gray-600 text-xs sm:text-sm">Cliente llama</div>
             </button>
             
-            {/* ... otros botones similares */}
+            <button
+              onClick={() => setActiveTab('walk-in')}
+              className={`p-3 sm:p-4 rounded-lg border-2 text-left transition-colors ${
+                activeTab === 'walk-in'
+                  ? 'border-orange-500 bg-orange-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <User className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2 text-orange-600" />
+              <div className="font-semibold text-sm sm:text-base">Paso por Local</div>
+              <div className="text-gray-600 text-xs sm:text-sm">Cliente recoge</div>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('delivery')}
+              className={`p-3 sm:p-4 rounded-lg border-2 text-left transition-colors ${
+                activeTab === 'delivery'
+                  ? 'border-orange-500 bg-orange-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <MapPin className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2 text-orange-600" />
+              <div className="font-semibold text-sm sm:text-base">Delivery</div>
+              <div className="text-gray-600 text-xs sm:text-sm">Envío a domicilio</div>
+            </button>
           </div>
         </div>
 
@@ -165,7 +359,64 @@ const OrderReception: React.FC = () => {
               </div>
             ))}
             
-            {/* ... resto del código del menú con clases responsive similares */}
+            {/* Resultados de búsqueda */}
+            {searchTerm && filteredItems.length > 0 && (
+              <div className="pt-4 border-t border-gray-100">
+                <h4 className="font-semibold text-gray-900 mb-3 text-sm sm:text-base">Resultados de Búsqueda</h4>
+                <div className="space-y-2">
+                  {filteredItems.map(item => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-center p-2 sm:p-3 bg-orange-50 rounded-lg border border-orange-100 group hover:bg-orange-100 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 text-sm">{item.name}</div>
+                        <div className="text-xs text-gray-600">{item.category} - S/ {item.price.toFixed(2)}</div>
+                      </div>
+                      <button
+                        onClick={() => addToCart(item)}
+                        className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-1 sm:p-2 rounded-lg hover:shadow-md transition-all duration-200"
+                      >
+                        <Plus size={12} className="sm:hidden" />
+                        <Plus size={14} className="hidden sm:block" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Mensaje cuando no hay resultados */}
+            {searchTerm && filteredItems.length === 0 && (
+              <div className="pt-4 border-t border-gray-100">
+                <div className="text-center py-4">
+                  <Search className="h-6 w-6 sm:h-8 sm:w-8 text-gray-300 mx-auto mb-2" />
+                  <div className="text-gray-500 text-sm">No se encontraron productos</div>
+                  <div className="text-gray-400 text-xs">Intenta con otros términos</div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-100">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setSearchTerm('')}
+                className="flex-1 text-xs bg-gray-100 text-gray-600 py-2 px-2 sm:px-3 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Limpiar
+              </button>
+              <button
+                onClick={() => {
+                  const combo = menuDelDia['🥗 Entradas'][0];
+                  addToCart(combo);
+                }}
+                className="flex-1 text-xs bg-orange-100 text-orange-600 py-2 px-2 sm:px-3 rounded-lg hover:bg-orange-200 transition-colors"
+              >
+                Combo Popular
+              </button>
+            </div>
           </div>
         </div>
 
@@ -228,7 +479,47 @@ const OrderReception: React.FC = () => {
                 </div>
               ))}
               
-              {/* ... resto del carrito con clases responsive */}
+              {/* Notas generales del pedido */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notas Generales del Pedido
+                </label>
+                <textarea
+                  value={orderNotes}
+                  onChange={(e) => setOrderNotes(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Instrucciones especiales para el pedido..."
+                />
+              </div>
+              
+              {/* Total y acciones */}
+              <div className="border-t border-gray-100 pt-3 sm:pt-4">
+                <div className="flex justify-between items-center mb-3 sm:mb-4">
+                  <span className="text-lg font-semibold">Total:</span>
+                  <span className="text-xl sm:text-2xl font-bold text-orange-600">
+                    S/ {getTotal().toFixed(2)}
+                  </span>
+                </div>
+                
+                <div className="flex space-x-2 sm:space-x-3">
+                  <button
+                    onClick={() => setCart([])}
+                    className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={createOrder}
+                    disabled={cart.length === 0 || !customerName || !phone}
+                    className="flex-1 px-3 sm:px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-1 sm:space-x-2 text-sm"
+                  >
+                    <Check size={14} className="sm:hidden" />
+                    <Check size={16} className="hidden sm:block" />
+                    <span>Crear Pedido</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
