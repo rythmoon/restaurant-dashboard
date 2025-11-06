@@ -4,23 +4,25 @@ import StatsCards from './components/dashboard/StatsCards';
 import OrdersManager from './components/orders/OrdersManager';
 import MenuManager from './components/menu/MenuManager';
 import OrderReception from './components/orders/OrderReception';
+import CustomersManager from './components/customers/CustomersManager';
 
 function App() {
   const [activeTab, setActiveTab] = React.useState('reception');
 
-  // Tabs para móvil y desktop
+  // Tabs para móvil y desktop - Agregada pestaña de Clientes
   const tabs = [
     { id: 'reception', name: '🎯 Recepción', shortName: '🎯' },
     { id: 'dashboard', name: '📊 Dashboard', shortName: '📊' },
     { id: 'orders', name: '📋 Órdenes', shortName: '📋' },
     { id: 'menu', name: '🍽️ Menú', shortName: '🍽️' },
+    { id: 'customers', name: '👥 Clientes', shortName: '👥' },
   ];
 
   return (
     <DashboardLayout>
       {/* Navigation Tabs Responsive */}
       <div className="mb-4 sm:mb-6 lg:mb-8">
-        <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl p-1 sm:p-2 w-full max-w-2xl mx-auto">
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl p-1 sm:p-2 w-full max-w-4xl mx-auto">
           <nav className="flex space-x-1">
             {tabs.map((tab) => (
               <button
@@ -71,6 +73,7 @@ function App() {
       
       {activeTab === 'orders' && <OrdersManager />}
       {activeTab === 'menu' && <MenuManager />}
+      {activeTab === 'customers' && <CustomersManager />}
     </DashboardLayout>
   );
 }
