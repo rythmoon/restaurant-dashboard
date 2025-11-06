@@ -3,11 +3,12 @@ import { Plus, Minus, X, ShoppingBag, ArrowRight } from 'lucide-react';
 import { MenuItem, OrderItem, OrderSource, Order } from '../../types';
 import OrderTicket from './OrderTicket';
 
-// Componente de Notificación Toast mejorado con desvanecimiento y color azul
+// Componente de Notificación Toast mejorado con desvanecimiento y colores
 const ToastNotification: React.FC<{
   message: string;
+  type: 'success' | 'error';
   onClose: () => void;
-}> = ({ message, onClose }) => {
+}> = ({ message, type, onClose }) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -19,14 +20,17 @@ const ToastNotification: React.FC<{
     return () => clearTimeout(timer);
   }, [onClose]);
 
+  const bgColor = type === 'success' ? 'bg-blue-500' : 'bg-red-500';
+  const icon = type === 'success' ? '✅' : '❌';
+
   return (
-    <div className={`fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+    <div className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
       isVisible 
         ? 'animate-in slide-in-from-right-full opacity-100' 
         : 'animate-out slide-out-to-right-full opacity-0'
     }`}>
       <div className="flex items-center space-x-2">
-        <span className="text-lg">✅</span>
+        <span className="text-lg">{icon}</span>
         <span className="font-medium">{message}</span>
       </div>
     </div>
@@ -45,7 +49,7 @@ const OrderReception: React.FC = () => {
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('🥗 Entradas');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Cargar pedidos desde localStorage al iniciar
   useEffect(() => {
@@ -85,8 +89,8 @@ const OrderReception: React.FC = () => {
     item.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const showToast = (message: string) => {
-    setToast(message);
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
   };
 
   const addToCart = (menuItem: MenuItem) => {
@@ -96,9 +100,9 @@ const OrderReception: React.FC = () => {
       
       if (existing) {
         newQuantity = existing.quantity + 1;
-        showToast(`${menuItem.name} (${newQuantity})`);
+        showToast(`${menuItem.name} (${newQuantity})`, 'success');
       } else {
-        showToast(`${menuItem.name} añadido`);
+        showToast(`${menuItem.name} añadido`, 'success');
       }
 
       if (existing) {
@@ -113,7 +117,13 @@ const OrderReception: React.FC = () => {
   };
 
   const removeFromCart = (itemId: string) => {
-    setCart(prev => prev.filter(item => item.menuItem.id !== itemId));
+    setCart(prev => {
+      const itemToRemove = prev.find(item => item.menuItem.id === itemId);
+      if (itemToRemove) {
+        showToast(`${itemToRemove.menuItem.name} eliminado`, 'error');
+      }
+      return prev.filter(item => item.menuItem.id !== itemId);
+    });
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
@@ -125,6 +135,12 @@ const OrderReception: React.FC = () => {
     setCart(prev =>
       prev.map(item => {
         if (item.menuItem.id === itemId) {
+          const menuItem = allMenuItems.find(mi => mi.id === itemId);
+          if (menuItem && quantity < item.quantity) {
+            showToast(`${menuItem.name} (${quantity})`, 'error');
+          } else if (menuItem && quantity > item.quantity) {
+            showToast(`${menuItem.name} (${quantity})`, 'success');
+          }
           return { ...item, quantity };
         }
         return item;
@@ -146,7 +162,7 @@ const OrderReception: React.FC = () => {
 
   const createOrder = () => {
     if (cart.length === 0) {
-      showToast('El pedido está vacío');
+      showToast('El pedido está vacío', 'error');
       return;
     }
 
@@ -204,10 +220,11 @@ const OrderReception: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 pb-20 lg:pb-6">
-      {/* Notificación Toast mejorada con color azul y check ✅ */}
+      {/* Notificación Toast mejorada con colores */}
       {toast && (
         <ToastNotification
-          message={toast}
+          message={toast.message}
+          type={toast.type}
           onClose={() => setToast(null)}
         />
       )}
