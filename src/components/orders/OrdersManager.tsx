@@ -1,84 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Order } from '../../types';
 import OrderTicket from './OrderTicket';
 
 const OrdersManager: React.FC = () => {
-  // Datos de ejemplo - reemplazar con datos de Google Sheets
-  const orders: Order[] = [
-    {
-      id: 'ORD-001',
-      tableNumber: 1,
-      items: [
-        {
-          menuItem: {
-            id: '1',
-            name: 'Hamburguesa Clásica',
-            category: 'Platos Principales',
-            price: 12.99,
-            available: true,
-            type: 'food'
-          },
-          quantity: 2,
-          notes: 'Sin cebolla'
-        },
-        {
-          menuItem: {
-            id: '2',
-            name: 'Coca Cola',
-            category: 'Bebidas',
-            price: 2.50,
-            available: true,
-            type: 'drink'
-          },
-          quantity: 2
-        }
-      ],
-      status: 'pending',
-      createdAt: new Date(),
-      total: 31.98,
-      customerName: 'Juan Pérez',
-      phone: '123-456-7890',
-      source: {
-        type: 'walk-in'
-      }
-    },
-    {
-      id: 'ORD-002',
-      items: [
-        {
-          menuItem: {
-            id: 'P001',
-            name: 'Lomo Saltado de Pollo',
-            category: 'Platos de Fondo',
-            price: 28.00,
-            available: true,
-            type: 'food'
-          },
-          quantity: 1
-        },
-        {
-          menuItem: {
-            id: 'E001',
-            name: 'Papa a la Huancaina',
-            category: 'Entradas',
-            price: 18.00,
-            available: true,
-            type: 'food'
-          },
-          quantity: 1
-        }
-      ],
-      status: 'preparing',
-      createdAt: new Date(),
-      total: 46.00,
-      customerName: 'María García',
-      phone: '987-654-3210',
-      source: {
-        type: 'phone'
-      }
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Cargar órdenes desde localStorage
+  useEffect(() => {
+    const savedOrders = localStorage.getItem('restaurant-orders');
+    if (savedOrders) {
+      const parsedOrders = JSON.parse(savedOrders).map((order: any) => ({
+        ...order,
+        createdAt: new Date(order.createdAt)
+      }));
+      setOrders(parsedOrders);
     }
-  ];
+  }, []);
+
+  const filteredOrders = orders.filter(order =>
+    order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.phone?.includes(searchTerm)
+  );
 
   const getStatusColor = (status: Order['status']) => {
     const colors = {
@@ -114,13 +59,26 @@ const OrdersManager: React.FC = () => {
     return sourceMap[sourceType] || sourceType;
   };
 
+  const updateOrderStatus = (orderId: string, newStatus: Order['status']) => {
+    const updatedOrders = orders.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    setOrders(updatedOrders);
+    localStorage.setItem('restaurant-orders', JSON.stringify(updatedOrders));
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Gestión de Órdenes</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Gestión de Órdenes</h2>
+          <p className="text-gray-600">
+            {orders.length} {orders.length === 1 ? 'orden' : 'órdenes'} en total
+          </p>
+        </div>
         <button 
-          onClick={() => window.location.href = '#reception'}
-          className="bg-primary-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-primary-600 transition-colors"
+          onClick={() => window.location.hash = 'reception'}
+          className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all duration-300 flex items-center space-x-2"
         >
           <Plus size={20} />
           <span>Nueva Orden</span>
@@ -128,17 +86,26 @@ const OrdersManager: React.FC = () => {
       </div>
 
       {/* Barra de búsqueda y filtros */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
+      <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar órdenes por cliente o ID..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
-          <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+          <select 
+            onChange={(e) => {
+              if (e.target.value) {
+                setSearchTerm(e.target.value);
+              }
+            }}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+          >
             <option value="">Todos los estados</option>
             <option value="pending">Pendiente</option>
             <option value="preparing">Preparando</option>
@@ -147,97 +114,97 @@ const OrdersManager: React.FC = () => {
             <option value="paid">Pagado</option>
             <option value="delivered">Entregado</option>
           </select>
-          <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-            <option value="">Todos los tipos</option>
-            <option value="phone">Teléfono</option>
-            <option value="walk-in">Presencial</option>
-            <option value="delivery">Delivery</option>
-          </select>
         </div>
       </div>
 
       {/* Lista de órdenes */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Orden
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cliente
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Items
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.id}</div>
-                    <div className="text-sm text-gray-500">
-                      {order.createdAt.toLocaleTimeString()}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.customerName}</div>
-                    <div className="text-sm text-gray-500">{order.phone}</div>
-                    {order.tableNumber && (
-                      <div className="text-sm text-gray-500">Mesa {order.tableNumber}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                      {getSourceText(order.source.type)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      {order.items.length} items
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {order.items.map(item => item.menuItem.name).join(', ')}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      S/ {order.total.toFixed(2)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                      {getStatusText(order.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <OrderTicket order={order} />
-                    <button className="text-primary-600 hover:text-primary-900">
-                      Editar
-                    </button>
-                    <button className="text-green-600 hover:text-green-900">
-                      Siguiente Estado
-                    </button>
-                  </td>
+      <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-sm border border-white/20 overflow-hidden">
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg mb-2">
+              {searchTerm ? 'No se encontraron órdenes' : 'No hay órdenes registradas'}
+            </div>
+            <div className="text-gray-400 text-sm">
+              {searchTerm 
+                ? 'Intenta con otros términos de búsqueda' 
+                : 'Las órdenes aparecerán aquí cuando las crees en Recepción'
+              }
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Orden
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cliente
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tipo
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{order.id}</div>
+                      <div className="text-sm text-gray-500">
+                        {order.createdAt.toLocaleTimeString()}
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{order.customerName}</div>
+                      <div className="text-sm text-gray-500">{order.phone}</div>
+                      {order.tableNumber && (
+                        <div className="text-sm text-gray-500">Mesa {order.tableNumber}</div>
+                      )}
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                        {getSourceText(order.source.type)}
+                      </span>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        S/ {order.total.toFixed(2)}
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      <select
+                        value={order.status}
+                        onChange={(e) => updateOrderStatus(order.id, e.target.value as Order['status'])}
+                        className={`text-xs font-semibold rounded-full px-2 py-1 border-0 ${getStatusColor(order.status)}`}
+                      >
+                        <option value="pending">Pendiente</option>
+                        <option value="preparing">Preparando</option>
+                        <option value="ready">Listo</option>
+                        <option value="served">Servido</option>
+                        <option value="paid">Pagado</option>
+                        <option value="delivered">Entregado</option>
+                      </select>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <OrderTicket order={order} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
