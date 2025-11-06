@@ -9,32 +9,42 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   const handlePrint = () => {
     const printContent = document.getElementById(`ticket-${order.id}`);
     if (printContent) {
-      const printWindow = window.open('', '_blank', 'width=80mm,height=600,scrollbars=no,toolbar=no,location=no');
+      // Para escritorio usar tamaño mayor, para móvil más pequeño
+      const isMobile = window.innerWidth <= 768;
+      const windowFeatures = isMobile 
+        ? 'width=320,height=600,scrollbars=no,toolbar=no,location=no'
+        : 'width=800,height=600,scrollbars=no,toolbar=no,location=no';
+      
+      const printWindow = window.open('', '_blank', windowFeatures);
       if (printWindow) {
-        const ticketContent = generateTicketContent(order);
+        const ticketContent = generateTicketContent(order, isMobile);
         printWindow.document.write(`
           <!DOCTYPE html>
           <html>
             <head>
               <title>Ticket ${order.id}</title>
               <style>
-                @page {
-                  margin: 0;
-                  size: 80mm auto;
+                @media print {
+                  @page {
+                    margin: 0;
+                    size: 80mm auto;
+                  }
                 }
                 body {
                   font-family: 'Courier New', monospace;
                   font-size: 12px;
                   line-height: 1.2;
                   width: 80mm;
-                  margin: 0;
+                  margin: 0 auto;
                   padding: 10px;
                   background: white;
                   color: black;
+                  box-sizing: border-box;
                 }
                 .ticket {
                   width: 100%;
                   max-width: 80mm;
+                  margin: 0 auto;
                 }
                 .center {
                   text-align: center;
@@ -72,10 +82,49 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
                   padding-top: 5px;
                   margin-top: 5px;
                 }
+                
+                /* Estilos para vista previa en escritorio */
+                @media screen and (min-width: 769px) {
+                  body {
+                    width: 100%;
+                    max-width: 400px;
+                    background: #f5f5f5;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                  }
+                  .ticket {
+                    background: white;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    border-radius: 8px;
+                  }
+                }
+                
+                /* Estilos para vista previa en móvil */
+                @media screen and (max-width: 768px) {
+                  body {
+                    width: 100%;
+                    max-width: 300px;
+                    margin: 0 auto;
+                  }
+                }
               </style>
             </head>
-            <body onload="window.print(); window.close();">
+            <body>
               ${ticketContent}
+              <script>
+                // Esperar a que cargue el contenido antes de imprimir
+                window.onload = function() {
+                  setTimeout(function() {
+                    window.print();
+                    setTimeout(function() {
+                      window.close();
+                    }, 500);
+                  }, 100);
+                };
+              </script>
             </body>
           </html>
         `);
@@ -94,7 +143,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return sourceMap[sourceType] || sourceType;
   };
 
-  const generateTicketContent = (order: Order) => {
+  const generateTicketContent = (order: Order, isMobile: boolean = false) => {
     const sourceText = getSourceText(order.source.type);
     
     return `
@@ -192,18 +241,26 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
 
   return (
     <>
-      {/* Botón para imprimir - oculto pero funcional */}
+      {/* Botón para imprimir - ahora visible pero con estilos */}
       <button
         onClick={handlePrint}
         data-order-id={order.id}
-        className="hidden"
-        aria-hidden="true"
+        className="print-button"
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          margin: '10px 0'
+        }}
       >
         Imprimir Ticket {order.id}
       </button>
 
-      {/* Contenido del ticket optimizado para POS - Solo para referencia */}
-      <div id={`ticket-${order.id}`} className="hidden">
+      {/* Contenido del ticket - Solo para referencia, oculto por defecto */}
+      <div id={`ticket-${order.id}`} style={{ display: 'none' }}>
         <div>Ticket content for printing</div>
       </div>
     </>
