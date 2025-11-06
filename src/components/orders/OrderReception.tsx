@@ -3,7 +3,7 @@ import { Plus, Minus, Check, X, ShoppingBag, ArrowRight } from 'lucide-react';
 import { MenuItem, OrderItem, OrderSource, Order } from '../../types';
 import OrderTicket from './OrderTicket';
 
-// Componente de Notificación Toast mejorado con desvanecimiento
+// Componente de Notificación Toast mejorado con desvanecimiento y color azul
 const ToastNotification: React.FC<{
   message: string;
   onClose: () => void;
@@ -20,13 +20,13 @@ const ToastNotification: React.FC<{
   }, [onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+    <div className={`fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
       isVisible 
         ? 'animate-in slide-in-from-right-full opacity-100' 
         : 'animate-out slide-out-to-right-full opacity-0'
     }`}>
       <div className="flex items-center space-x-2">
-        <Check size={20} />
+        <span className="text-lg">✅</span>
         <span className="font-medium">{message}</span>
       </div>
     </div>
@@ -96,9 +96,9 @@ const OrderReception: React.FC = () => {
       
       if (existing) {
         newQuantity = existing.quantity + 1;
-        showToast(`✓ ${menuItem.name} (${newQuantity})`);
+        showToast(`${menuItem.name} (${newQuantity})`);
       } else {
-        showToast(`✓ ${menuItem.name} añadido`);
+        showToast(`${menuItem.name} añadido`);
       }
 
       if (existing) {
@@ -204,7 +204,7 @@ const OrderReception: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 pb-20 lg:pb-6">
-      {/* Notificación Toast mejorada con desvanecimiento */}
+      {/* Notificación Toast mejorada con color azul y check ✅ */}
       {toast && (
         <ToastNotification
           message={toast}
@@ -254,7 +254,7 @@ const OrderReception: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto">
               <div className="text-center">
-                <Check className="h-10 w-10 sm:h-12 sm:w-12 text-green-500 mx-auto mb-3 sm:mb-4" />
+                <div className="text-4xl mb-3">✅</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">¿Confirmar Pedido?</h3>
                 <p className="text-gray-600 mb-3 sm:mb-4 text-sm">
                   Pedido <strong>{lastOrder.id}</strong> para <strong>{lastOrder.customerName}</strong>
@@ -274,7 +274,7 @@ const OrderReception: React.FC = () => {
                     onClick={confirmOrder}
                     className="flex-1 px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1 sm:space-x-2 text-sm"
                   >
-                    <Check size={16} />
+                    <span className="text-lg">✅</span>
                     <span>Confirmar</span>
                   </button>
                 </div>
@@ -382,7 +382,7 @@ const OrderReception: React.FC = () => {
                         disabled={!customerName || !phone}
                         className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold text-lg"
                       >
-                        <Check size={20} />
+                        <span className="text-lg">✅</span>
                         <span>Confirmar Pedido</span>
                         <ArrowRight size={18} />
                       </button>
@@ -491,7 +491,7 @@ const OrderReception: React.FC = () => {
             </div>
           </div>
 
-          {/* Panel del Menú */}
+          {/* Panel del Menú - Tarjeta completa clickeable con botones de cantidad */}
           <div className="xl:col-span-2 lg:col-span-2">
             <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
@@ -527,7 +527,7 @@ const OrderReception: React.FC = () => {
                 </div>
               )}
 
-              {/* Grid de Productos con botón de menos */}
+              {/* Grid de Productos - Tarjeta completa clickeable */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {currentItems.map(item => {
                   const cartItem = cart.find(cartItem => cartItem.menuItem.id === item.id);
@@ -537,6 +537,7 @@ const OrderReception: React.FC = () => {
                     <div
                       key={item.id}
                       className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 cursor-pointer group relative"
+                      onClick={() => addToCart(item)} // Toda la tarjeta es clickeable
                     >
                       {/* Badge de cantidad en carrito */}
                       {quantityInCart > 0 && (
@@ -559,11 +560,21 @@ const OrderReception: React.FC = () => {
                             S/ {item.price.toFixed(2)}
                           </div>
                         </div>
+                        {/* Botón + flotante */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(item);
+                          }}
+                          className="ml-3 bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
+                        >
+                          <Plus size={16} />
+                        </button>
                       </div>
 
-                      {/* Botones de acción */}
-                      <div className="flex items-center justify-between mt-3">
-                        {quantityInCart > 0 ? (
+                      {/* Botones de cantidad - Solo aparecen si hay items en el carrito */}
+                      {quantityInCart > 0 && (
+                        <div className="flex items-center justify-between mt-3">
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={(e) => {
@@ -587,19 +598,8 @@ const OrderReception: React.FC = () => {
                               <Plus size={14} />
                             </button>
                           </div>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addToCart(item);
-                            }}
-                            className="w-full bg-orange-500 text-white py-2 px-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
-                          >
-                            <Plus size={14} />
-                            <span>Agregar</span>
-                          </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -715,7 +715,7 @@ const OrderReception: React.FC = () => {
                         disabled={!customerName || !phone}
                         className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
                       >
-                        <Check size={18} />
+                        <span className="text-lg">✅</span>
                         <span>Confirmar Pedido</span>
                         <ArrowRight size={16} />
                       </button>
