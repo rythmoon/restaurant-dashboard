@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Phone, User, MapPin, Plus, Trash2, Search, Check, Printer } from 'lucide-react';
 import { MenuItem, OrderItem, OrderSource, Order } from '../../types';
 import OrderTicket from './OrderTicket';
-
-// Simulamos almacenamiento en memoria
-let ordersStorage: Order[] = [];
 
 const OrderReception: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'phone' | 'walk-in' | 'delivery'>('phone');
@@ -16,6 +13,14 @@ const OrderReception: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
+
+  // Cargar pedidos desde localStorage al iniciar
+  useEffect(() => {
+    const savedOrders = localStorage.getItem('restaurant-orders');
+    if (savedOrders) {
+      console.log('Pedidos cargados desde localStorage:', JSON.parse(savedOrders).length);
+    }
+  }, []);
 
   // Menú del día compacto
   const menuDelDia: { [key: string]: MenuItem[] } = {
@@ -90,9 +95,18 @@ const OrderReception: React.FC = () => {
   };
 
   const saveOrderToStorage = (order: Order) => {
-    ordersStorage.push(order);
-    console.log('Pedido guardado:', order);
-    console.log('Total de pedidos:', ordersStorage.length);
+    // Obtener pedidos existentes
+    const existingOrders = localStorage.getItem('restaurant-orders');
+    const orders = existingOrders ? JSON.parse(existingOrders) : [];
+    
+    // Agregar nuevo pedido
+    orders.push(order);
+    
+    // Guardar en localStorage
+    localStorage.setItem('restaurant-orders', JSON.stringify(orders));
+    
+    console.log('Pedido guardado en localStorage:', order);
+    console.log('Total de pedidos:', orders.length);
   };
 
   const createOrder = () => {
@@ -297,9 +311,9 @@ const OrderReception: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid principal - Cambia a columna en móvil */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Menú Compacto */}
+      {/* Grid principal - SOLO el menú en recepción */}
+      <div className="grid grid-cols-1">
+        {/* Menú Compacto - Ocupa toda la pantalla */}
         <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20">
           <h3 className="text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Menú del Día</h3>
           
@@ -315,11 +329,11 @@ const OrderReception: React.FC = () => {
                 </div>
                 
                 {/* Grid compacto de productos */}
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {items.map(item => (
                     <div
                       key={item.id}
-                      className="group bg-white rounded-lg sm:rounded-xl p-2 sm:p-3 border border-gray-100 hover:border-orange-200 hover:shadow-md transition-all duration-200 cursor-pointer"
+                      className="group bg-white rounded-lg sm:rounded-xl p-3 border border-gray-100 hover:border-orange-200 hover:shadow-md transition-all duration-200 cursor-pointer"
                       onClick={() => addToCart(item)}
                     >
                       <div className="flex items-center justify-between">
@@ -347,10 +361,9 @@ const OrderReception: React.FC = () => {
                             e.stopPropagation();
                             addToCart(item);
                           }}
-                          className="ml-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white p-1 sm:p-2 rounded-lg hover:shadow-md transition-all duration-200"
+                          className="ml-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white p-2 rounded-lg hover:shadow-md transition-all duration-200"
                         >
-                          <Plus size={12} className="sm:hidden" />
-                          <Plus size={14} className="hidden sm:block" />
+                          <Plus size={14} />
                         </button>
                       </div>
                     </div>
@@ -363,11 +376,11 @@ const OrderReception: React.FC = () => {
             {searchTerm && filteredItems.length > 0 && (
               <div className="pt-4 border-t border-gray-100">
                 <h4 className="font-semibold text-gray-900 mb-3 text-sm sm:text-base">Resultados de Búsqueda</h4>
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {filteredItems.map(item => (
                     <div
                       key={item.id}
-                      className="flex justify-between items-center p-2 sm:p-3 bg-orange-50 rounded-lg border border-orange-100 group hover:bg-orange-100 transition-colors"
+                      className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-100 group hover:bg-orange-100 transition-colors"
                     >
                       <div className="flex-1">
                         <div className="font-medium text-gray-900 text-sm">{item.name}</div>
@@ -375,10 +388,9 @@ const OrderReception: React.FC = () => {
                       </div>
                       <button
                         onClick={() => addToCart(item)}
-                        className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-1 sm:p-2 rounded-lg hover:shadow-md transition-all duration-200"
+                        className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-2 rounded-lg hover:shadow-md transition-all duration-200"
                       >
-                        <Plus size={12} className="sm:hidden" />
-                        <Plus size={14} className="hidden sm:block" />
+                        <Plus size={14} />
                       </button>
                     </div>
                   ))}
@@ -405,7 +417,7 @@ const OrderReception: React.FC = () => {
                 onClick={() => setSearchTerm('')}
                 className="flex-1 text-xs bg-gray-100 text-gray-600 py-2 px-2 sm:px-3 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                Limpiar
+                Limpiar Búsqueda
               </button>
               <button
                 onClick={() => {
@@ -419,111 +431,68 @@ const OrderReception: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Carrito de Pedido */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Pedido Actual</h3>
-          
-          {cart.length === 0 ? (
-            <div className="text-center text-gray-500 py-6 sm:py-8">
-              <div className="text-sm sm:text-lg mb-2">No hay items en el pedido</div>
-              <div className="text-xs sm:text-sm">Selecciona productos del menú</div>
+      {/* Carrito de Pedido - FIXED en la parte inferior en móvil */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-orange-200 shadow-lg lg:relative lg:bg-transparent lg:border-0 lg:shadow-none lg:mt-6">
+          <div className="bg-white/95 backdrop-blur-lg lg:bg-white/80 lg:backdrop-blur-lg rounded-t-xl lg:rounded-2xl p-4 lg:p-6 shadow-sm border border-orange-100 lg:border-white/20">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Pedido Actual</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-semibold text-orange-600">
+                  S/ {getTotal().toFixed(2)}
+                </span>
+                <button
+                  onClick={() => setCart([])}
+                  className="text-red-500 hover:text-red-700 p-1"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-3 sm:space-y-4">
+            
+            <div className="space-y-2 max-h-32 overflow-y-auto">
               {cart.map((item, index) => (
-                <div key={index} className="border-b border-gray-100 pb-3 sm:pb-4 last:border-b-0">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 text-sm">
-                        {item.menuItem.name}
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        S/ {item.menuItem.price.toFixed(2)} c/u
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      <button
-                        onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
-                        className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 text-xs"
-                      >
-                        -
-                      </button>
-                      <span className="w-6 text-center font-medium text-xs sm:text-sm">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
-                        className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 text-xs"
-                      >
-                        +
-                      </button>
-                      <button
-                        onClick={() => removeFromCart(item.menuItem.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 size={12} className="sm:hidden" />
-                        <Trash2 size={14} className="hidden sm:block" />
-                      </button>
+                <div key={index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900 text-sm">
+                      {item.quantity}x {item.menuItem.name}
                     </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Notas:</label>
-                    <input
-                      type="text"
-                      value={item.notes || ''}
-                      onChange={(e) => updateItemNotes(item.menuItem.id, e.target.value)}
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="Ej: Sin cebolla..."
-                    />
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
+                      className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 text-xs"
+                    >
+                      -
+                    </button>
+                    <button
+                      onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
+                      className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 text-xs"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
               ))}
-              
-              {/* Notas generales del pedido */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notas Generales del Pedido
-                </label>
-                <textarea
-                  value={orderNotes}
-                  onChange={(e) => setOrderNotes(e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Instrucciones especiales para el pedido..."
-                />
-              </div>
-              
-              {/* Total y acciones */}
-              <div className="border-t border-gray-100 pt-3 sm:pt-4">
-                <div className="flex justify-between items-center mb-3 sm:mb-4">
-                  <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-xl sm:text-2xl font-bold text-orange-600">
-                    S/ {getTotal().toFixed(2)}
-                  </span>
-                </div>
-                
-                <div className="flex space-x-2 sm:space-x-3">
-                  <button
-                    onClick={() => setCart([])}
-                    className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={createOrder}
-                    disabled={cart.length === 0 || !customerName || !phone}
-                    className="flex-1 px-3 sm:px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-1 sm:space-x-2 text-sm"
-                  >
-                    <Check size={14} className="sm:hidden" />
-                    <Check size={16} className="hidden sm:block" />
-                    <span>Crear Pedido</span>
-                  </button>
-                </div>
+            </div>
+            
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex space-x-2">
+                <button
+                  onClick={createOrder}
+                  disabled={!customerName || !phone}
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white py-2 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 text-sm"
+                >
+                  <Check size={16} />
+                  <span>Crear Pedido</span>
+                </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Ticket oculto para impresión */}
       {lastOrder && <OrderTicket order={lastOrder} />}
