@@ -3,7 +3,7 @@ import { Plus, Minus, X, ShoppingBag, ArrowRight } from 'lucide-react';
 import { MenuItem, OrderItem, OrderSource, Order } from '../../types';
 import OrderTicket from './OrderTicket';
 
-// Componente de Notificación Toast mejorado con desvanecimiento y colores
+// Componente de Notificación Toast mejorado sin íconos
 const ToastNotification: React.FC<{
   message: string;
   type: 'success' | 'error';
@@ -14,14 +14,13 @@ const ToastNotification: React.FC<{
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onClose, 300); // Espera a que termine la animación
-    }, 2500); // Más tiempo visible
+      setTimeout(onClose, 300);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [onClose]);
 
   const bgColor = type === 'success' ? 'bg-blue-500' : 'bg-red-500';
-  const icon = type === 'success' ? '✅' : '❌';
 
   return (
     <div className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
@@ -29,10 +28,7 @@ const ToastNotification: React.FC<{
         ? 'animate-in slide-in-from-right-full opacity-100' 
         : 'animate-out slide-out-to-right-full opacity-0'
     }`}>
-      <div className="flex items-center space-x-2">
-        <span className="text-lg">{icon}</span>
-        <span className="font-medium">{message}</span>
-      </div>
+      <div className="font-medium">{message}</div>
     </div>
   );
 };
@@ -220,7 +216,7 @@ const OrderReception: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 pb-20 lg:pb-6">
-      {/* Notificación Toast mejorada con colores */}
+      {/* Notificación Toast sin íconos */}
       {toast && (
         <ToastNotification
           message={toast.message}
@@ -266,12 +262,14 @@ const OrderReception: React.FC = () => {
           </div>
         </div>
 
-        {/* Modal de Confirmación */}
+        {/* Modal de Confirmación sin check */}
         {showConfirmation && lastOrder && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto">
               <div className="text-center">
-                <div className="text-4xl mb-3">✅</div>
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ShoppingBag className="h-8 w-8 text-orange-500" />
+                </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">¿Confirmar Pedido?</h3>
                 <p className="text-gray-600 mb-3 sm:mb-4 text-sm">
                   Pedido <strong>{lastOrder.id}</strong> para <strong>{lastOrder.customerName}</strong>
@@ -289,10 +287,9 @@ const OrderReception: React.FC = () => {
                   </button>
                   <button
                     onClick={confirmOrder}
-                    className="flex-1 px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1 sm:space-x-2 text-sm"
+                    className="flex-1 px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
                   >
-                    <span className="text-lg">✅</span>
-                    <span>Confirmar</span>
+                    Confirmar
                   </button>
                 </div>
               </div>
@@ -384,7 +381,7 @@ const OrderReception: React.FC = () => {
                     <div className="space-y-3">
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <p className="text-blue-800 text-sm text-center">
-                          📝 Completa los datos del cliente arriba para continuar
+                          Completa los datos del cliente arriba para continuar
                         </p>
                       </div>
                       
@@ -397,9 +394,8 @@ const OrderReception: React.FC = () => {
                       <button
                         onClick={createOrder}
                         disabled={!customerName || !phone}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold text-lg"
+                        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-4 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold text-lg"
                       >
-                        <span className="text-lg">✅</span>
                         <span>Confirmar Pedido</span>
                         <ArrowRight size={18} />
                       </button>
@@ -508,7 +504,7 @@ const OrderReception: React.FC = () => {
             </div>
           </div>
 
-          {/* Panel del Menú - Tarjeta completa clickeable con botones de cantidad */}
+          {/* Panel del Menú - Botones siempre visibles */}
           <div className="xl:col-span-2 lg:col-span-2">
             <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
@@ -544,7 +540,7 @@ const OrderReception: React.FC = () => {
                 </div>
               )}
 
-              {/* Grid de Productos - Tarjeta completa clickeable */}
+              {/* Grid de Productos - Botones siempre visibles */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {currentItems.map(item => {
                   const cartItem = cart.find(cartItem => cartItem.menuItem.id === item.id);
@@ -554,16 +550,16 @@ const OrderReception: React.FC = () => {
                     <div
                       key={item.id}
                       className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 cursor-pointer group relative"
-                      onClick={() => addToCart(item)} // Toda la tarjeta es clickeable
+                      onClick={() => addToCart(item)}
                     >
                       {/* Badge de cantidad en carrito */}
                       {quantityInCart > 0 && (
-                        <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
+                        <div className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
                           {quantityInCart}
                         </div>
                       )}
                       
-                      <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start justify-between mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-gray-900 text-sm sm:text-base mb-1 truncate">
                             {item.name}
@@ -577,32 +573,22 @@ const OrderReception: React.FC = () => {
                             S/ {item.price.toFixed(2)}
                           </div>
                         </div>
-                        {/* Botón + flotante */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(item);
-                          }}
-                          className="ml-3 bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
-                        >
-                          <Plus size={16} />
-                        </button>
                       </div>
 
-                      {/* Botones de cantidad - Solo aparecen si hay items en el carrito */}
-                      {quantityInCart > 0 && (
-                        <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center space-x-2">
+                      {/* Botones de cantidad - Siempre visibles */}
+                      <div className="flex items-center justify-between">
+                        {quantityInCart > 0 ? (
+                          <div className="flex items-center space-x-2 w-full">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 updateQuantity(item.id, quantityInCart - 1);
                               }}
-                              className="w-8 h-8 flex items-center justify-center bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                              className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex-1"
                             >
                               <Minus size={14} />
                             </button>
-                            <span className="text-sm font-medium w-6 text-center">
+                            <span className="text-sm font-medium w-8 text-center">
                               {quantityInCart}
                             </span>
                             <button
@@ -610,13 +596,24 @@ const OrderReception: React.FC = () => {
                                 e.stopPropagation();
                                 updateQuantity(item.id, quantityInCart + 1);
                               }}
-                              className="w-8 h-8 flex items-center justify-center bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                              className="w-8 h-8 flex items-center justify-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex-1"
                             >
                               <Plus size={14} />
                             </button>
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(item);
+                            }}
+                            className="w-full bg-orange-500 text-white py-2 px-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
+                          >
+                            <Plus size={14} />
+                            <span>Agregar</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -633,7 +630,7 @@ const OrderReception: React.FC = () => {
             </div>
           </div>
 
-          {/* Panel del Carrito - Solo visible en desktop - Mejorado */}
+          {/* Panel del Carrito - Solo visible en desktop */}
           <div className="hidden xl:block xl:col-span-1">
             <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20 sticky top-6">
               <div className="flex items-center justify-between mb-6">
@@ -655,7 +652,7 @@ const OrderReception: React.FC = () => {
                   <div className="text-gray-400 text-xs">Agrega productos del menú</div>
                   <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-blue-800 text-sm">
-                      👆 Haz clic en los productos para agregarlos
+                      Haz clic en los productos para agregarlos
                     </p>
                   </div>
                 </div>
@@ -717,7 +714,7 @@ const OrderReception: React.FC = () => {
                     <div className="space-y-3">
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <p className="text-blue-800 text-sm text-center">
-                          ✅ Completa los datos del cliente para confirmar
+                          Completa los datos del cliente para confirmar
                         </p>
                       </div>
                       
@@ -730,9 +727,8 @@ const OrderReception: React.FC = () => {
                       <button
                         onClick={createOrder}
                         disabled={!customerName || !phone}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
+                        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
                       >
-                        <span className="text-lg">✅</span>
                         <span>Confirmar Pedido</span>
                         <ArrowRight size={16} />
                       </button>
