@@ -1,75 +1,171 @@
-import React from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import { MenuItem } from '../../types';
 
 const MenuManager: React.FC = () => {
-  // Datos de ejemplo - reemplazar con datos de Google Sheets
-  const menuItems: MenuItem[] = [
-    {
-      id: '1',
-      name: 'Hamburguesa Clásica',
-      category: 'Platos Principales',
-      price: 12.99,
-      description: 'Carne de res, lechuga, tomate, queso',
-      available: true,
-      type: 'food'
-    },
-    {
-      id: '2',
-      name: 'Coca Cola',
-      category: 'Bebidas',
-      price: 2.50,
-      available: true,
-      type: 'drink'
-    }
-  ];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('Todas');
+
+  // Usar los mismos datos del menú que en OrderReception
+  const menuDelDia: { [key: string]: MenuItem[] } = {
+    '🥗 Entradas': [
+      { id: 'E001', name: 'Papa a la Huancaina', category: 'Entradas', price: 18.00, type: 'food', available: true, description: 'Papa amarilla con salsa huancaina' },
+      { id: 'E002', name: 'Causa Rellena', category: 'Entradas', price: 16.00, type: 'food', available: true, description: 'Causa de pollo o atún' },
+      { id: 'E003', name: 'Tequeños', category: 'Entradas', price: 15.00, type: 'food', available: true, description: '12 unidades con salsa de ají' },
+      { id: 'E004', name: 'Anticuchos', category: 'Entradas', price: 22.00, type: 'food', available: true, description: 'Brochetas de corazón' },
+    ],
+    '🍽️ Platos de Fondo': [
+      { id: 'P001', name: 'Lomo Saltado de Pollo', category: 'Platos de Fondo', price: 28.00, type: 'food', available: true, description: 'Salteado con cebolla, tomate' },
+      { id: 'P002', name: 'Lomo Saltado de Res', category: 'Platos de Fondo', price: 32.00, type: 'food', available: true, description: 'Salteado con cebolla, tomate' },
+      { id: 'P003', name: 'Arroz con Mariscos', category: 'Platos de Fondo', price: 35.00, type: 'food', available: true, description: 'Arroz verde con mix de mariscos' },
+      { id: 'P004', name: 'Aji de Gallina', category: 'Platos de Fondo', price: 25.00, type: 'food', available: true, description: 'Pollo en salsa de ají amarillo' },
+    ],
+    '🥤 Bebidas': [
+      { id: 'B001', name: 'Inca Kola 500ml', category: 'Bebidas', price: 6.00, type: 'drink', available: true },
+      { id: 'B002', name: 'Coca Cola 500ml', category: 'Bebidas', price: 6.00, type: 'drink', available: true },
+      { id: 'B003', name: 'Chicha Morada', category: 'Bebidas', price: 8.00, type: 'drink', available: true },
+      { id: 'B004', name: 'Limonada', category: 'Bebidas', price: 7.00, type: 'drink', available: true },
+    ]
+  };
+
+  // Todos los items para búsqueda
+  const allMenuItems = Object.values(menuDelDia).flat();
+  const categories = ['Todas', ...Object.keys(menuDelDia)];
+
+  // Filtrar items
+  const filteredItems = allMenuItems.filter(item =>
+    (activeCategory === 'Todas' || item.category === activeCategory.replace(/[🥗🍽️🥤]/g, '').trim()) &&
+    (item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     item.category.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Gestión del Menú</h2>
-        <button className="bg-primary-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-primary-600 transition-colors">
-          <Plus size={20} />
-          <span>Nuevo Item</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {menuItems.map((item) => (
-          <div key={item.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                <p className="text-sm text-gray-500">{item.category}</p>
-              </div>
-              <div className="flex space-x-2">
-                <button className="text-blue-600 hover:text-blue-900">
-                  <Edit size={16} />
-                </button>
-                <button className="text-red-600 hover:text-red-900">
-                  <Trash2 size={16} />
-                </button>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20">
+          {/* Header */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Gestión del Menú</h1>
+              <p className="text-gray-600 mt-1">Administra los productos de tu restaurante</p>
             </div>
             
-            {item.description && (
-              <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-            )}
-            
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold text-gray-900">
-                ${item.price.toFixed(2)}
-              </span>
-              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                item.available 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {item.available ? 'Disponible' : 'No disponible'}
-              </span>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Barra de búsqueda */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-64"
+                  placeholder="Buscar productos..."
+                />
+              </div>
+              
+              <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 hover:shadow-md transition-all duration-300 font-medium">
+                <Plus size={20} />
+                <span>Nuevo Producto</span>
+              </button>
             </div>
           </div>
-        ))}
+
+          {/* Navegación de Categorías */}
+          <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                  activeCategory === category
+                    ? 'bg-orange-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {/* Grid de Productos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 group">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">{item.name}</h3>
+                    <p className="text-sm text-gray-500">{item.category}</p>
+                  </div>
+                  <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors">
+                      <Edit size={16} />
+                    </button>
+                    <button className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+                
+                {item.description && (
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
+                )}
+                
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-2xl font-bold text-orange-600">
+                      S/ {item.price.toFixed(2)}
+                    </span>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {item.type === 'food' ? '🍽️ Comida' : '🥤 Bebida'}
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                    item.available 
+                      ? 'bg-green-100 text-green-800 border border-green-200' 
+                      : 'bg-red-100 text-red-800 border border-red-200'
+                  }`}>
+                    {item.available ? 'Disponible' : 'No disponible'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Estado vacío */}
+          {filteredItems.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-4xl text-gray-300 mb-4">🍽️</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No se encontraron productos</h3>
+              <p className="text-gray-500 text-sm">
+                {searchTerm || activeCategory !== 'Todas' 
+                  ? 'Intenta con otros términos de búsqueda' 
+                  : 'No hay productos en el menú'}
+              </p>
+            </div>
+          )}
+
+          {/* Estadísticas */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-orange-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-orange-600">{allMenuItems.length}</div>
+                <div className="text-sm text-gray-600">Total de Productos</div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {allMenuItems.filter(item => item.available).length}
+                </div>
+                <div className="text-sm text-gray-600">Disponibles</div>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {allMenuItems.filter(item => item.type === 'food').length}
+                </div>
+                <div className="text-sm text-gray-600">Platos de Comida</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
