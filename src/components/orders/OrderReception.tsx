@@ -226,6 +226,7 @@ const OrderReception: React.FC = () => {
       )}
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+        {/* Header Móvil */}
         <div className="lg:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-lg border-b border-orange-200">
           <div className="px-3 py-3">
             <div className="flex items-center justify-between">
@@ -242,7 +243,6 @@ const OrderReception: React.FC = () => {
                 </div>
               </div>
               
-              {/* Botón Carrito Móvil mejorado con mensaje */}
               <button
                 onClick={() => setShowCartDrawer(true)}
                 className="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
@@ -262,7 +262,7 @@ const OrderReception: React.FC = () => {
           </div>
         </div>
 
-        {/* Modal de Confirmación sin check */}
+        {/* Modal de Confirmación */}
         {showConfirmation && lastOrder && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto">
@@ -297,7 +297,7 @@ const OrderReception: React.FC = () => {
           </div>
         )}
 
-        {/* Drawer del Carrito Móvil mejorado */}
+        {/* Drawer del Carrito Móvil */}
         {showCartDrawer && (
           <div className="lg:hidden fixed inset-0 z-50">
             <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowCartDrawer(false)} />
@@ -407,42 +407,40 @@ const OrderReception: React.FC = () => {
           </div>
         )}
 
-        {/* Layout Principal MEJORADO para escritorio */}
-        <div className="grid grid-cols-1 2xl:grid-cols-5 xl:grid-cols-4 lg:grid-cols-3 gap-4 lg:gap-6 pt-4 lg:pt-6">
-          
-          {/* Panel de Información del Cliente - Ocupa menos espacio en escritorio grande */}
-          <div className="2xl:col-span-1 xl:col-span-1 lg:col-span-1">
-            <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20 sticky top-4">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Información del Pedido</h2>
-              
-              <div className="space-y-4 sm:space-y-6">
-                {/* Tipo de Pedido */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Tipo de Pedido</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { type: 'phone', label: '📞', desc: 'Teléfono' },
-                      { type: 'walk-in', label: '👤', desc: 'Local' },
-                      { type: 'delivery', label: '📍', desc: 'Delivery' }
-                    ].map(({ type, label, desc }) => (
-                      <button
-                        key={type}
-                        onClick={() => setActiveTab(type as any)}
-                        className={`p-2 sm:p-3 rounded-xl border-2 text-center transition-all ${
-                          activeTab === type
-                            ? 'border-orange-500 bg-orange-50 shadow-sm'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="text-lg mb-1">{label}</div>
-                        <div className="font-semibold text-xs sm:text-sm">{desc}</div>
-                      </button>
-                    ))}
-                  </div>
+        {/* LAYOUT COMPACTO PARA ESCRITORIO - REORGANIZADO */}
+        <div className="hidden lg:block">
+          {/* Información del Cliente - ARRIBA DEL TODO */}
+          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Información del Pedido</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Tipo de Pedido */}
+              <div className="md:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Tipo de Pedido</label>
+                <div className="space-y-2">
+                  {[
+                    { type: 'phone', label: '📞 Teléfono' },
+                    { type: 'walk-in', label: '👤 Paso por Local' },
+                    { type: 'delivery', label: '📍 Delivery' }
+                  ].map(({ type, label }) => (
+                    <button
+                      key={type}
+                      onClick={() => setActiveTab(type as any)}
+                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                        activeTab === type
+                          ? 'border-orange-500 bg-orange-50 shadow-sm'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold text-sm">{label}</div>
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Formulario del Cliente */}
-                <div className="space-y-4">
+              {/* Formulario del Cliente */}
+              <div className="md:col-span-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Nombre del Cliente *
@@ -472,7 +470,7 @@ const OrderReception: React.FC = () => {
                   </div>
 
                   {activeTab === 'delivery' && (
-                    <div>
+                    <div className="md:col-span-3">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Dirección de Envío *
                       </label>
@@ -487,7 +485,7 @@ const OrderReception: React.FC = () => {
                     </div>
                   )}
 
-                  <div>
+                  <div className="md:col-span-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Notas del Pedido
                     </label>
@@ -504,240 +502,228 @@ const OrderReception: React.FC = () => {
             </div>
           </div>
 
-          {/* Panel del Menú - Ocupa más espacio en escritorio grande */}
-          <div className="2xl:col-span-3 xl:col-span-2 lg:col-span-2">
-            <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Menú del Día</h2>
-                <div className="relative w-full sm:w-64">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</div>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Buscar productos..."
-                  />
+          {/* Menú y Carrito - LADO A LADO */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Menú del Día - Ocupa 2/3 del espacio */}
+            <div className="xl:col-span-2">
+              <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                  <h2 className="text-xl font-bold text-gray-900">Menú del Día</h2>
+                  <div className="relative w-full sm:w-64">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</div>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Buscar productos..."
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Navegación de Categorías */}
-              {!searchTerm && (
-                <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
-                  {categories.map(category => (
-                    <button
-                      key={category}
-                      onClick={() => setActiveCategory(category)}
-                      className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                        activeCategory === category
-                          ? 'bg-orange-500 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              )}
+                {/* Navegación de Categorías */}
+                {!searchTerm && (
+                  <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+                    {categories.map(category => (
+                      <button
+                        key={category}
+                        onClick={() => setActiveCategory(category)}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                          activeCategory === category
+                            ? 'bg-orange-500 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-              {/* Grid de Productos MEJORADO - Más columnas en pantallas grandes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
-                {currentItems.map(item => {
-                  const cartItem = cart.find(cartItem => cartItem.menuItem.id === item.id);
-                  const quantityInCart = cartItem ? cartItem.quantity : 0;
-                  
-                  return (
-                    <div
-                      key={item.id}
-                      className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 cursor-pointer group"
-                      onClick={() => addToCart(item)}
-                    >
-                      {/* Badge de cantidad en carrito */}
-                      {quantityInCart > 0 && (
-                        <div className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
-                          {quantityInCart}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1 min-w-0">
-                          {/* Nombre del producto con mejor manejo de texto */}
-                          <div className="font-semibold text-gray-900 text-sm sm:text-base mb-1 break-words line-clamp-2 min-h-[2.5rem]">
+                {/* Grid de Productos Compacto */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {currentItems.map(item => {
+                    const cartItem = cart.find(cartItem => cartItem.menuItem.id === item.id);
+                    const quantityInCart = cartItem ? cartItem.quantity : 0;
+                    
+                    return (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-xl p-4 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 cursor-pointer"
+                        onClick={() => addToCart(item)}
+                      >
+                        {/* Badge de cantidad en carrito */}
+                        {quantityInCart > 0 && (
+                          <div className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
+                            {quantityInCart}
+                          </div>
+                        )}
+                        
+                        <div className="mb-3">
+                          <div className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2 min-h-[2.5rem]">
                             {item.name}
                           </div>
                           {item.description && (
-                            <div className="text-gray-600 text-xs sm:text-sm mb-2 line-clamp-2">
+                            <div className="text-gray-600 text-xs mb-2 line-clamp-2">
                               {item.description}
                             </div>
                           )}
-                          <div className="font-bold text-orange-600 text-sm sm:text-base">
+                          <div className="font-bold text-orange-600 text-sm">
                             S/ {item.price.toFixed(2)}
                           </div>
                         </div>
-                      </div>
 
-                      {/* Botones de cantidad - Siempre visibles */}
-                      <div className="flex items-center justify-between">
-                        {quantityInCart > 0 ? (
-                          <div className="flex items-center space-x-2 w-full">
+                        {/* Botones de cantidad */}
+                        <div className="flex items-center justify-between">
+                          {quantityInCart > 0 ? (
+                            <div className="flex items-center space-x-2 w-full">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateQuantity(item.id, quantityInCart - 1);
+                                }}
+                                className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex-1"
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span className="text-sm font-medium w-8 text-center">
+                                {quantityInCart}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateQuantity(item.id, quantityInCart + 1);
+                                }}
+                                className="w-8 h-8 flex items-center justify-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex-1"
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                          ) : (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                updateQuantity(item.id, quantityInCart - 1);
+                                addToCart(item);
                               }}
-                              className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex-1"
-                            >
-                              <Minus size={14} />
-                            </button>
-                            <span className="text-sm font-medium w-8 text-center">
-                              {quantityInCart}
-                            </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateQuantity(item.id, quantityInCart + 1);
-                              }}
-                              className="w-8 h-8 flex items-center justify-center bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex-1"
+                              className="w-full bg-orange-500 text-white py-2 px-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
                             >
                               <Plus size={14} />
+                              <span>Agregar</span>
                             </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addToCart(item);
-                            }}
-                            className="w-full bg-orange-500 text-white py-2 px-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center space-x-1 text-sm font-medium"
-                          >
-                            <Plus size={14} />
-                            <span>Agregar</span>
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Resultados de Búsqueda */}
-              {searchTerm && filteredItems.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="text-4xl text-gray-300 mb-3">🔍</div>
-                  <div className="text-gray-500 text-sm">No se encontraron productos</div>
-                  <div className="text-gray-400 text-xs">Intenta con otros términos</div>
+                    );
+                  })}
                 </div>
-              )}
+
+                {/* Resultados de Búsqueda */}
+                {searchTerm && filteredItems.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl text-gray-300 mb-3">🔍</div>
+                    <div className="text-gray-500 text-sm">No se encontraron productos</div>
+                    <div className="text-gray-400 text-xs">Intenta con otros términos</div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Panel del Carrito - Solo visible en desktop - MEJORADO */}
-          <div className="hidden 2xl:block 2xl:col-span-1">
-            <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20 sticky top-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Tu Pedido</h2>
-                  <p className="text-sm text-gray-600">{totalItems} productos</p>
+            {/* Carrito - Ocupa 1/3 del espacio y MUESTRA LOS PRODUCTOS */}
+            <div className="xl:col-span-1">
+              <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20 sticky top-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Tu Pedido</h2>
+                    <p className="text-sm text-gray-600">{totalItems} productos</p>
+                  </div>
+                  <div className="bg-orange-500 text-white p-2 rounded-lg">
+                    <ShoppingBag size={20} />
+                  </div>
                 </div>
-                <div className="bg-orange-500 text-white p-2 rounded-lg">
-                  <ShoppingBag size={20} />
-                </div>
+
+                {cart.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="bg-orange-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <ShoppingBag className="h-8 w-8 text-orange-500" />
+                    </div>
+                    <div className="text-gray-500 text-sm mb-2">Tu pedido está vacío</div>
+                    <div className="text-gray-400 text-xs">Agrega productos del menú</div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Lista de Items - MEJORADA para mostrar nombres */}
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {cart.map((item, index) => (
+                        <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0 mr-3">
+                              <div className="font-medium text-gray-900 text-sm break-words">
+                                {item.menuItem.name}
+                              </div>
+                              <div className="text-gray-600 text-xs mt-1">
+                                S/ {item.menuItem.price.toFixed(2)} c/u
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2 flex-shrink-0">
+                              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-2 py-1">
+                                <button
+                                  onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
+                                  className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 text-sm font-bold text-gray-700"
+                                >
+                                  <Minus size={12} />
+                                </button>
+                                <span className="w-6 text-center font-medium text-sm">{item.quantity}</span>
+                                <button
+                                  onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
+                                  className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 text-sm font-bold text-gray-700"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                              <button
+                                onClick={() => removeFromCart(item.menuItem.id)}
+                                className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-lg"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="text-right text-sm font-semibold text-orange-600">
+                            S/ {(item.menuItem.price * item.quantity).toFixed(2)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Total y Acciones */}
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-lg font-semibold">Total:</span>
+                        <span className="text-2xl font-bold text-orange-600">
+                          S/ {getTotal().toFixed(2)}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => setCart([])}
+                          className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                        >
+                          Vaciar Carrito
+                        </button>
+                        <button
+                          onClick={createOrder}
+                          disabled={!customerName || !phone}
+                          className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
+                        >
+                          <span>Confirmar Pedido</span>
+                          <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {cart.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="bg-orange-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <ShoppingBag className="h-8 w-8 text-orange-500" />
-                  </div>
-                  <div className="text-gray-500 text-sm mb-2">Tu pedido está vacío</div>
-                  <div className="text-gray-400 text-xs">Agrega productos del menú</div>
-                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-blue-800 text-sm">
-                      👆 Haz clic en los productos
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Lista de Items - Mejorado para nombres largos */}
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {cart.map((item, index) => (
-                      <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex-1 min-w-0 mr-3">
-                            {/* Nombre con mejor manejo de texto */}
-                            <div className="font-medium text-gray-900 text-sm break-words line-clamp-2">
-                              {item.menuItem.name}
-                            </div>
-                            <div className="text-gray-600 text-xs">
-                              S/ {item.menuItem.price.toFixed(2)} c/u
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3 flex-shrink-0">
-                            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-2 py-1">
-                              <button
-                                onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
-                                className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 text-sm font-bold text-gray-700"
-                              >
-                                <Minus size={12} />
-                              </button>
-                              <span className="w-6 text-center font-medium text-sm">{item.quantity}</span>
-                              <button
-                                onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
-                                className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 text-sm font-bold text-gray-700"
-                              >
-                                <Plus size={12} />
-                              </button>
-                            </div>
-                            <button
-                              onClick={() => removeFromCart(item.menuItem.id)}
-                              className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-lg"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="text-right text-sm font-semibold text-orange-600">
-                          S/ {(item.menuItem.price * item.quantity).toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Total y Acciones */}
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-lg font-semibold">Total:</span>
-                      <span className="text-2xl font-bold text-orange-600">
-                        S/ {getTotal().toFixed(2)}
-                      </span>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-blue-800 text-sm text-center">
-                          ✅ Completa los datos del cliente
-                        </p>
-                      </div>
-                      
-                      <button
-                        onClick={() => setCart([])}
-                        className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                      >
-                        Vaciar Carrito
-                      </button>
-                      <button
-                        onClick={createOrder}
-                        disabled={!customerName || !phone}
-                        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
-                      >
-                        <span>Confirmar Pedido</span>
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
