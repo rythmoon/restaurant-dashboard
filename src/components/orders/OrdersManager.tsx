@@ -25,7 +25,7 @@ const OrdersManager: React.FC = () => {
     order.phone?.includes(searchTerm)
   );
 
-  // CORREGIDO: Usar solo los estados definidos en el tipo Order
+  // ✅ CORREGIDO: Incluye 'cancelled' en el objeto colors
   const getStatusColor = (status: Order['status']) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
