@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Search, Save, X } from 'lucide-react';
 import { MenuItem } from '../../types';
+import { useMenu } from '../../hooks/useMenu';
 
 const MenuManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -8,31 +9,17 @@ const MenuManager: React.FC = () => {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [editPrice, setEditPrice] = useState('');
 
-  // Usar los mismos datos del menú que en OrderReception
-  const [menuItems, setMenuItems] = useState<{ [key: string]: MenuItem[] }>({
-    '🥗 Entradas': [
-      { id: 'E001', name: 'Papa a la Huancaina', category: 'Entradas', price: 18.00, type: 'food', available: true, description: 'Papa amarilla con salsa huancaina' },
-      { id: 'E002', name: 'Causa Rellena', category: 'Entradas', price: 16.00, type: 'food', available: true, description: 'Causa de pollo o atún' },
-      { id: 'E003', name: 'Tequeños', category: 'Entradas', price: 15.00, type: 'food', available: true, description: '12 unidades con salsa de ají' },
-      { id: 'E004', name: 'Anticuchos', category: 'Entradas', price: 22.00, type: 'food', available: true, description: 'Brochetas de corazón' },
-    ],
-    '🍽️ Platos de Fondo': [
-      { id: 'P001', name: 'Lomo Saltado de Pollo', category: 'Platos de Fondo', price: 28.00, type: 'food', available: true, description: 'Salteado con cebolla, tomate' },
-      { id: 'P002', name: 'Lomo Saltado de Res', category: 'Platos de Fondo', price: 32.00, type: 'food', available: true, description: 'Salteado con cebolla, tomate' },
-      { id: 'P003', name: 'Arroz con Mariscos', category: 'Platos de Fondo', price: 35.00, type: 'food', available: true, description: 'Arroz verde con mix de mariscos' },
-      { id: 'P004', name: 'Aji de Gallina', category: 'Platos de Fondo', price: 25.00, type: 'food', available: true, description: 'Pollo en salsa de ají amarillo' },
-    ],
-    '🥤 Bebidas': [
-      { id: 'B001', name: 'Inca Kola 500ml', category: 'Bebidas', price: 6.00, type: 'drink', available: true },
-      { id: 'B002', name: 'Coca Cola 500ml', category: 'Bebidas', price: 6.00, type: 'drink', available: true },
-      { id: 'B003', name: 'Chicha Morada', category: 'Bebidas', price: 8.00, type: 'drink', available: true },
-      { id: 'B004', name: 'Limonada', category: 'Bebidas', price: 7.00, type: 'drink', available: true },
-    ]
-  });
+  // Usar el hook centralizado del menú
+  const { 
+    menuItems, 
+    getAllItems, 
+    getCategories, 
+    updateItemPrice, 
+    deleteItem 
+  } = useMenu();
 
-  // Todos los items para búsqueda
-  const allMenuItems = Object.values(menuItems).flat();
-  const categories = ['Todas', ...Object.keys(menuItems)];
+  const allMenuItems = getAllItems();
+  const categories = ['Todas', ...getCategories()];
 
   // Filtrar items
   const filteredItems = allMenuItems.filter(item =>
@@ -51,16 +38,7 @@ const MenuManager: React.FC = () => {
     if (editingItem && editPrice) {
       const newPrice = parseFloat(editPrice);
       if (!isNaN(newPrice)) {
-        // Actualizar el precio en el estado
-        setMenuItems(prev => {
-          const updated = { ...prev };
-          Object.keys(updated).forEach(category => {
-            updated[category] = updated[category].map(item =>
-              item.id === editingItem.id ? { ...item, price: newPrice } : item
-            );
-          });
-          return updated;
-        });
+        updateItemPrice(editingItem.id, newPrice);
         setEditingItem(null);
         setEditPrice('');
       }
@@ -72,15 +50,9 @@ const MenuManager: React.FC = () => {
     setEditPrice('');
   };
 
-  const deleteItem = (id: string) => {
+  const handleDeleteItem = (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-      setMenuItems(prev => {
-        const updated = { ...prev };
-        Object.keys(updated).forEach(category => {
-          updated[category] = updated[category].filter(item => item.id !== id);
-        });
-        return updated;
-      });
+      deleteItem(id);
     }
   };
 
@@ -149,7 +121,7 @@ const MenuManager: React.FC = () => {
                       <Edit size={16} />
                     </button>
                     <button 
-                      onClick={() => deleteItem(item.id)}
+                      onClick={() => handleDeleteItem(item.id)}
                       className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                     >
                       <Trash2 size={16} />
