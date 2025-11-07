@@ -70,7 +70,8 @@ function App() {
           </div>
         </div>
       )}
-      
+
+      {activeTab === 'orders' && <OrderReception />}
       {activeTab === 'orders' && <OrdersManager />}
       {activeTab === 'menu' && <MenuManager />}
       {activeTab === 'customers' && <CustomersManager />}
@@ -79,3 +80,4 @@ function App() {
 }
 
 export default App;
+
