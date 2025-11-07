@@ -35,7 +35,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-                    Sabores & Sazón
+                    Mary's Restaurant
                   </h1>
                   <p className="text-gray-600 text-xs sm:text-sm font-medium hidden sm:block">
                     Dashboard Restaurant
@@ -124,3 +124,4 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 };
 
 export default DashboardLayout;
+
