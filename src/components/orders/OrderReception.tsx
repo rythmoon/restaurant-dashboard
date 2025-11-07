@@ -79,21 +79,23 @@ const OrderReception: React.FC = () => {
 
   // Todos los items para búsqueda
   const allMenuItems = Object.values(menuDelDia).flat();
+  const categories = Object.keys(menuDelDia);
 
-  // Filtrar items CORREGIDO - SIN función innecesaria
-  const filteredItems = allMenuItems.filter(item => {
-    const matchesCategory = activeCategory === '🥗 Entradas' ? item.category === 'Entradas' :
-                           activeCategory === '🍽️ Platos de Fondo' ? item.category === 'Platos de Fondo' :
-                           activeCategory === '🥤 Bebidas' ? item.category === 'Bebidas' : true;
+  // CORREGIDO: Función simplificada para obtener los items a mostrar
+  const getItemsToShow = () => {
+    // Si hay término de búsqueda, filtrar todos los items
+    if (searchTerm) {
+      return allMenuItems.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
     
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.category.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesCategory && matchesSearch;
-  });
+    // Si no hay búsqueda, mostrar los items de la categoría activa
+    return menuDelDia[activeCategory] || [];
+  };
 
-  // Obtener items actuales CORREGIDO
-  const currentItems = searchTerm ? filteredItems : (menuDelDia[activeCategory] || []);
+  const currentItems = getItemsToShow();
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -220,7 +222,6 @@ const OrderReception: React.FC = () => {
     setLastOrder(null);
   };
 
-  const categories = Object.keys(menuDelDia);
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
@@ -627,11 +628,20 @@ const OrderReception: React.FC = () => {
                 </div>
 
                 {/* Resultados de Búsqueda */}
-                {searchTerm && filteredItems.length === 0 && (
+                {searchTerm && currentItems.length === 0 && (
                   <div className="text-center py-8">
                     <div className="text-4xl text-gray-300 mb-3">🔍</div>
                     <div className="text-gray-500 text-sm">No se encontraron productos</div>
                     <div className="text-gray-400 text-xs">Intenta con otros términos</div>
+                  </div>
+                )}
+
+                {/* Estado vacío cuando no hay productos en la categoría */}
+                {!searchTerm && currentItems.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl text-gray-300 mb-3">🍽️</div>
+                    <div className="text-gray-500 text-sm">No hay productos en esta categoría</div>
+                    <div className="text-gray-400 text-xs">Selecciona otra categoría</div>
                   </div>
                 )}
               </div>
