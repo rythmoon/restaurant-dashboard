@@ -48,8 +48,9 @@ const KitchenManager: React.FC = () => {
       }));
       setOrders(parsedOrders);
       
-      // ✅ CORREGIDO: Marcar todas las órdenes existentes como procesadas
-      const existingOrderIds = new Set(parsedOrders.map((order: any) => order.id as string));
+      // ✅ SOLUCIÓN DEFINITIVA: Crear Set de strings manualmente
+      const orderIds: string[] = parsedOrders.map((order: any) => order.id);
+      const existingOrderIds = new Set<string>(orderIds);
       setProcessedOrders(existingOrderIds);
     }
 
@@ -80,7 +81,11 @@ const KitchenManager: React.FC = () => {
       newOrders.forEach((order: Order) => {
         showNewOrderNotification(order);
         // Marcar como procesada inmediatamente
-        setProcessedOrders(prev => new Set([...prev, order.id]));
+        setProcessedOrders(prev => {
+          const newSet = new Set(prev);
+          newSet.add(order.id);
+          return newSet;
+        });
       });
 
       // Actualizar estado de órdenes
