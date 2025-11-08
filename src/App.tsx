@@ -13,11 +13,11 @@ function App() {
   // Tabs para móvil y desktop - Agregada pestaña de Clientes
   const tabs = [
     { id: 'reception', name: '🎯 Recepción', shortName: '🎯' },
-    { id: 'dashboard', name: '📊 Dashboard', shortName: '📊' },
     { id: 'orders', name: '📋 Órdenes', shortName: '📋' },
     { id: 'menu', name: '🍽️ Menú', shortName: '🍽️' },
-    { id: 'customers', name: '👥 Clientes', shortName: '👥' },
     { id: 'kitchen', name: '👨‍🍳 Cocina', shortName: '👨‍🍳' },
+    { id: 'customers', name: '👥 Clientes', shortName: '👥' },
+    { id: 'dashboard', name: '📊 Dashboard', shortName: '📊' },
   ];
 
   return (
@@ -84,4 +84,5 @@ function App() {
 }
 
 export default App;
+
 
