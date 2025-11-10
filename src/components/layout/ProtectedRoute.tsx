@@ -15,7 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center">
         <div className="text-center">
           <Loader className="h-8 w-8 animate-spin text-orange-500 mx-auto mb-4" />
-          <p className="text-gray-600">Verificando autenticación...</p>
+          <p className="text-gray-600">Cargando...</p>
         </div>
       </div>
     );
