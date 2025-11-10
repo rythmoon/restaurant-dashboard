@@ -1,18 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Para TypeScript con Vite - definición global para import.meta.env
-declare global {
-  interface ImportMetaEnv {
-    readonly VITE_SUPABASE_URL: string;
-    readonly VITE_SUPABASE_ANON_KEY: string;
-  }
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-  }
-}
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Configuración simple y efectiva
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
