@@ -15,18 +15,11 @@ export const useAuth = () => {
       const savedUser = localStorage.getItem('restaurant-user');
       if (savedUser) {
         const userData = JSON.parse(savedUser);
-        const sessionTime = localStorage.getItem('restaurant-session-time');
-        if (sessionTime && (Date.now() - parseInt(sessionTime)) < 24 * 60 * 60 * 1000) {
-          setUser(userData);
-        } else {
-          localStorage.removeItem('restaurant-user');
-          localStorage.removeItem('restaurant-session-time');
-        }
+        setUser(userData);
       }
     } catch (error) {
-      console.error('Error checking saved session:', error);
+      console.error('Error checking session:', error);
       localStorage.removeItem('restaurant-user');
-      localStorage.removeItem('restaurant-session-time');
     } finally {
       setLoading(false);
     }
@@ -35,9 +28,19 @@ export const useAuth = () => {
   const signIn = async (username: string, password: string) => {
     try {
       setLoading(true);
-      console.log('🔐 Intentando login:', { username, password });
+      console.log('🔐 [DEBUG 1] Iniciando login para:', username);
       
+      // DEBUG: Probar conexión básica primero
+      console.log('🔐 [DEBUG 2] Probando conexión a Supabase...');
+      const { data: testData, error: testError } = await supabase
+        .from('employees')
+        .select('count')
+        .limit(1);
+
+      console.log('🔐 [DEBUG 3] Test conexión:', { testData, testError });
+
       // Buscar usuario por username
+      console.log('🔐 [DEBUG 4] Buscando usuario:', username);
       const { data: employee, error } = await supabase
         .from('employees')
         .select('*')
@@ -45,39 +48,53 @@ export const useAuth = () => {
         .eq('is_active', true)
         .single();
 
-      console.log('📊 Resultado de BD:', { employee, error });
+      console.log('🔐 [DEBUG 5] Resultado completo:', {
+        employee,
+        error,
+        errorDetails: error ? {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        } : null,
+        hasData: !!employee,
+        usernameBuscado: username.trim().toLowerCase()
+      });
 
       if (error) {
-        console.error('❌ Error de Supabase:', error);
-        throw new Error('Usuario no encontrado en la base de datos');
+        console.error('🔐 [DEBUG 6] Error específico:', error);
+        if (error.code === 'PGRST116') {
+          throw new Error(`No se encontró el usuario "${username}" en la base de datos`);
+        } else {
+          throw new Error(`Error de conexión: ${error.message}`);
+        }
       }
 
       if (!employee) {
-        console.error('❌ Usuario no existe:', username);
-        throw new Error('Usuario no encontrado');
+        console.error('🔐 [DEBUG 7] Employee es null/undefined');
+        throw new Error('Usuario no existe en el sistema');
       }
 
-      // ✅ VERIFICACIÓN SIMPLE TEMPORAL - ACEPTAR CUALQUIER CONTRASEÑA
-      const isValidPassword = true; // Temporal para testing
+      console.log('✅ [DEBUG 8] USUARIO ENCONTRADO:', {
+        id: employee.id,
+        username: employee.username,
+        name: employee.name,
+        role: employee.role,
+        is_active: employee.is_active
+      });
 
-      console.log('🔑 Verificación de contraseña:', { isValidPassword });
-
-      if (!isValidPassword) {
-        console.error('❌ Contraseña incorrecta');
-        throw new Error('Contraseña incorrecta');
-      }
-
-      console.log('✅ Login exitoso:', employee.name);
+      // ✅ CUALQUIER CONTRASEÑA VÁLIDA
+      console.log('🔐 [DEBUG 9] Contraseña aceptada');
       
       // Guardar sesión
       localStorage.setItem('restaurant-user', JSON.stringify(employee));
-      localStorage.setItem('restaurant-session-time', Date.now().toString());
-      
       setUser(employee);
+      
+      console.log('🎉 [DEBUG 10] LOGIN EXITOSO');
       return { success: true, error: null };
       
     } catch (error: any) {
-      console.error('❌ Error en login:', error.message);
+      console.error('💥 [DEBUG 11] ERROR FINAL:', error.message);
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -88,7 +105,6 @@ export const useAuth = () => {
     try {
       setLoading(true);
       localStorage.removeItem('restaurant-user');
-      localStorage.removeItem('restaurant-session-time');
       setUser(null);
     } catch (error: any) {
       console.error('Error signing out:', error);
