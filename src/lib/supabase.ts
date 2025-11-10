@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Tipos de datos (mantener igual)
+// Tipos de datos
 export interface Customer {
   id: string;
   name: string;
@@ -77,11 +77,11 @@ export interface OrderItem {
 
 export interface Employee {
   id: string;
-  email?: string; // ✅ Hacer email opcional
-  username: string; // ✅ Agregar username como requerido
+  email?: string;
+  username: string;
   name: string;
   role: 'admin' | 'manager' | 'employee';
   created_at: string;
   is_active: boolean;
+  password_hash?: string;
 }
-
