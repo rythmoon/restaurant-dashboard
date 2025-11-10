@@ -25,7 +25,7 @@ export const useAuth = () => {
     }
   };
 
-  const signIn = async (username: string, _password: string) => { // ✅ Cambiado a _password
+  const signIn = async (username: string, _password: string) => {
     try {
       setLoading(true);
       console.log('🔐 [DEBUG 1] Iniciando login para:', username);
@@ -105,7 +105,12 @@ export const useAuth = () => {
     try {
       setLoading(true);
       localStorage.removeItem('restaurant-user');
+      localStorage.removeItem('restaurant-session-time');
       setUser(null);
+      console.log('✅ Sesión cerrada correctamente');
+      
+      // Recargar la página para limpiar estado completo
+      window.location.reload();
     } catch (error: any) {
       console.error('Error signing out:', error);
     } finally {
