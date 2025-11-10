@@ -77,9 +77,11 @@ export interface OrderItem {
 
 export interface Employee {
   id: string;
-  email: string;
+  email?: string; // ✅ Hacer email opcional
+  username: string; // ✅ Agregar username como requerido
   name: string;
   role: 'admin' | 'manager' | 'employee';
   created_at: string;
   is_active: boolean;
 }
+
