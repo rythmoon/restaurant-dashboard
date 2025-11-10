@@ -1,55 +1,38 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Employee } from '../lib/supabase';
+import { simpleHash, DEFAULT_PASSWORDS } from '../utils/hash';
 
 export const useAuth = () => {
   const [user, setUser] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Verificar si hay sesión guardada al cargar
   useEffect(() => {
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    checkSavedSession();
   }, []);
 
-  const checkSession = async () => {
+  const checkSavedSession = () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
+      const savedUser = localStorage.getItem('restaurant-user');
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        // Verificar que la sesión no haya expirado (24 horas)
+        const sessionTime = localStorage.getItem('restaurant-session-time');
+        if (sessionTime && (Date.now() - parseInt(sessionTime)) < 24 * 60 * 60 * 1000) {
+          setUser(userData);
+        } else {
+          // Sesión expirada
+          localStorage.removeItem('restaurant-user');
+          localStorage.removeItem('restaurant-session-time');
+        }
       }
     } catch (error) {
-      console.error('Error checking session:', error);
+      console.error('Error checking saved session:', error);
+      localStorage.removeItem('restaurant-user');
+      localStorage.removeItem('restaurant-session-time');
+    } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      setUser(data);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      await signOut();
     }
   };
 
@@ -57,37 +40,42 @@ export const useAuth = () => {
     try {
       setLoading(true);
       
-      // Buscar el usuario por username
-      const { data: employee, error: employeeError } = await supabase
+      // Buscar usuario por username
+      const { data: employee, error } = await supabase
         .from('employees')
         .select('*')
         .eq('username', username.trim().toLowerCase())
+        .eq('is_active', true)
         .single();
 
-      if (employeeError || !employee) {
+      if (error || !employee) {
         throw new Error('Usuario no encontrado');
       }
 
-      // ✅ Si el usuario NO tiene email, usar un sistema alternativo
-      if (!employee.email) {
-        // Para usuarios sin email, usar un sistema de autenticación simple
-        // Esto es temporal - podrías implementar tu propio sistema de auth
-        throw new Error('Este usuario requiere configuración especial. Contacta al administrador.');
+      // ✅ Verificación de contraseña
+      let isValidPassword = false;
+
+      // Primero verificar si tiene password_hash en la base de datos
+      if (employee.password_hash) {
+        isValidPassword = simpleHash(password) === employee.password_hash;
+      } 
+      // Si no tiene password_hash, usar contraseñas por defecto
+      else if (DEFAULT_PASSWORDS[employee.username as keyof typeof DEFAULT_PASSWORDS]) {
+        const defaultPassword = DEFAULT_PASSWORDS[employee.username as keyof typeof DEFAULT_PASSWORDS];
+        isValidPassword = password === defaultPassword;
       }
 
-      // Si tiene email, hacer login normal con Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: employee.email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        await fetchUserProfile(data.user.id);
+      if (!isValidPassword) {
+        throw new Error('Contraseña incorrecta');
       }
 
+      // Guardar sesión en localStorage
+      localStorage.setItem('restaurant-user', JSON.stringify(employee));
+      localStorage.setItem('restaurant-session-time', Date.now().toString());
+      
+      setUser(employee);
       return { success: true, error: null };
+      
     } catch (error: any) {
       return { success: false, error: error.message };
     } finally {
@@ -98,8 +86,9 @@ export const useAuth = () => {
   const signOut = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Limpiar sesión local
+      localStorage.removeItem('restaurant-user');
+      localStorage.removeItem('restaurant-session-time');
       setUser(null);
     } catch (error: any) {
       console.error('Error signing out:', error);
@@ -108,11 +97,37 @@ export const useAuth = () => {
     }
   };
 
+  // Función para cambiar contraseña
+  const changePassword = async (newPassword: string) => {
+    if (!user) throw new Error('No hay usuario autenticado');
+
+    try {
+      const passwordHash = simpleHash(newPassword);
+      
+      const { error } = await supabase
+        .from('employees')
+        .update({ password_hash: passwordHash })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Actualizar usuario local
+      const updatedUser = { ...user, password_hash: passwordHash };
+      localStorage.setItem('restaurant-user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+
+      return { success: true, error: null };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
   return {
     user,
     loading,
     signIn,
     signOut,
+    changePassword,
     isAuthenticated: !!user,
   };
 };
