@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Configuración simple y efectiva
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+// Solución temporal - usar any para evitar errores de TypeScript
+const supabaseUrl = (import.meta.env as any).VITE_SUPABASE_URL;
+const supabaseAnonKey = (import.meta.env as any).VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
