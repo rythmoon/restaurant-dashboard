@@ -1,29 +1,93 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Configuración para diferentes entornos
-const getSupabaseConfig = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Para TypeScript con Vite
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string;
+  readonly VITE_SUPABASE_ANON_KEY: string;
+}
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
 
-  return {
-    supabaseUrl,
-    supabaseAnonKey,
-    options: {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-        flowType: 'pkce'
-      }
-    }
-  };
-};
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const config = getSupabaseConfig();
-export const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey, config.options);
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
 
-// ... (los tipos permanecen igual)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Tipos de datos
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  address?: string;
+  email?: string;
+  orders_count: number;
+  total_spent: number;
+  last_order: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  category_id: string;
+  category_name?: string;
+  type: 'food' | 'drink';
+  available: boolean;
+  image_url?: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  emoji?: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface Order {
+  id: string;
+  customer_id?: string;
+  customer_name: string;
+  phone: string;
+  address?: string;
+  table_number?: string;
+  source_type: 'phone' | 'walk-in' | 'delivery';
+  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  total: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  order_items?: OrderItem[];
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  menu_item_id: string;
+  menu_item_name: string;
+  menu_item_price: number;
+  quantity: number;
+  notes?: string;
+  created_at: string;
+}
+
+export interface Employee {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'manager' | 'employee';
+  created_at: string;
+  is_active: boolean;
+}
