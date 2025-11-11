@@ -37,7 +37,7 @@ const UserManager: React.FC = () => {
     'ADMINISTRADOR', 'SUPERVISOR', 'PERSONAL'
   ];
 
-  // Cargar usuarios
+  // Cargar usuarios - CORREGIDO: mantener todos los datos
   const loadEmployees = async () => {
     try {
       setLoading(true);
@@ -47,14 +47,7 @@ const UserManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // No mostrar las contraseñas por seguridad
-      const employeesWithoutPasswords = data?.map(emp => {
-        const { password_hash, ...empWithoutPassword } = emp;
-        return empWithoutPassword;
-      }) || [];
-      
-      setEmployees(employeesWithoutPasswords);
+      setEmployees(data || []);
     } catch (error: any) {
       console.error('Error loading employees:', error);
       alert('Error al cargar usuarios: ' + error.message);
@@ -84,7 +77,7 @@ const UserManager: React.FC = () => {
         role: formData.role,
         display_role: formData.display_role,
         is_active: true,
-        password_hash: formData.password // Guardar la contraseña directamente
+        password_hash: formData.password
       };
 
       const { error } = await supabase
@@ -112,7 +105,7 @@ const UserManager: React.FC = () => {
     }
   };
 
-  // Eliminar usuario
+  // Eliminar usuario - CORREGIDO: función simplificada
   const deleteUser = async (id: string, username: string) => {
     if (username === 'admin') {
       alert('❌ No puedes eliminar el usuario admin principal');
@@ -129,10 +122,11 @@ const UserManager: React.FC = () => {
 
       if (error) throw error;
       
-      alert('✅ Usuario eliminado');
-      await loadEmployees();
+      alert('✅ Usuario eliminado correctamente');
+      await loadEmployees(); // Recargar la lista
     } catch (error: any) {
-      alert('❌ Error: ' + error.message);
+      console.error('Error eliminando usuario:', error);
+      alert('❌ Error al eliminar usuario: ' + error.message);
     }
   };
 
