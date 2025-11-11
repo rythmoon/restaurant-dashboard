@@ -6,13 +6,16 @@ import MenuManager from './components/menu/MenuManager';
 import OrderReception from './components/orders/OrderReception';
 import CustomersManager from './components/customers/CustomersManager';
 import KitchenManager from './components/kitchen/KitchenManager';
+import UserManager from './components/users/UserManager';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import { useAuth } from './hooks/useAuth';
 
 function App() {
   const [activeTab, setActiveTab] = React.useState('reception');
+  const { user } = useAuth();
 
-  // Tabs para móvil y desktop - Agregada pestaña de Clientes
-  const tabs = [
+  // Tabs base para todos los usuarios
+  const baseTabs = [
     { id: 'reception', name: '🎯 Recepción', shortName: '🎯' },
     { id: 'orders', name: '📋 Órdenes', shortName: '📋' },
     { id: 'menu', name: '🍽️ Menú', shortName: '🍽️' },
@@ -20,6 +23,13 @@ function App() {
     { id: 'customers', name: '👥 Clientes', shortName: '👥' },
     { id: 'dashboard', name: '📊 Dashboard', shortName: '📊' },
   ];
+
+  // Solo administradores ven la pestaña de Usuarios
+  const adminTabs = user?.role === 'admin' 
+    ? [{ id: 'users', name: '🔧 Usuarios', shortName: '🔧' }]
+    : [];
+
+  const tabs = [...baseTabs, ...adminTabs];
 
   return (
     <ProtectedRoute>
@@ -79,6 +89,7 @@ function App() {
         {activeTab === 'menu' && <MenuManager />}
         {activeTab === 'customers' && <CustomersManager />}
         {activeTab === 'kitchen' && <KitchenManager />}
+        {activeTab === 'users' && <UserManager />}
       </DashboardLayout>
     </ProtectedRoute>
   );
