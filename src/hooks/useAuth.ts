@@ -26,7 +26,7 @@ export const useAuth = () => {
     }
   };
 
-  const signIn = async (username: string, _password: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
       setLoading(true);
       console.log('🔐 Iniciando login para:', username);
@@ -42,7 +42,7 @@ export const useAuth = () => {
       if (error) {
         console.error('Error de base de datos:', error);
         if (error.code === 'PGRST116') {
-          throw new Error(`Usuario "${username}" no encontrado`);
+          throw new Error('Usuario no encontrado');
         } else {
           throw new Error(`Error de conexión: ${error.message}`);
         }
@@ -52,13 +52,22 @@ export const useAuth = () => {
         throw new Error('Usuario no existe en el sistema');
       }
 
+      // Verificar contraseña
+      if (!employee.password_hash) {
+        // Si no tiene contraseña, permitir login (para compatibilidad)
+        console.log('⚠️ Usuario sin contraseña, permitiendo acceso');
+      } else if (employee.password_hash !== password) {
+        throw new Error('Contraseña incorrecta');
+      }
+
       console.log('✅ Login exitoso:', employee.name);
       
-      // Guardar sesión
-      localStorage.setItem('restaurant-user', JSON.stringify(employee));
-      setUser(employee);
+      // Guardar sesión (sin la contraseña por seguridad)
+      const { password_hash, ...userWithoutPassword } = employee;
+      localStorage.setItem('restaurant-user', JSON.stringify(userWithoutPassword));
+      setUser(userWithoutPassword);
       
-      return { success: true, error: null, user: employee };
+      return { success: true, error: null, user: userWithoutPassword };
       
     } catch (error: any) {
       console.error('Error en login:', error.message);
