@@ -25,7 +25,6 @@ const Login: React.FC = () => {
       const result = await signIn(username, password);
       if (result.success) {
         console.log('✅ Login exitoso, redirigiendo...');
-        // Esperar un momento para que el estado se actualice
         setTimeout(() => {
           window.location.reload();
         }, 500);
@@ -45,21 +44,34 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-amber-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-red-100 to-amber-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-500 to-amber-500 rounded-2xl shadow-lg mb-4">
+          <div 
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl shadow-lg mb-4"
+            style={{
+              background: 'linear-gradient(135deg, #dc2626 0%, #d97706 100%)'
+            }}
+          >
             <ChefHat className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-black bg-gradient-to-r from-red-500 to-amber-500 bg-clip-text text-transparent">
+          <h1 
+            className="text-3xl font-black mb-2"
+            style={{
+              background: 'linear-gradient(135deg, #dc2626 0%, #d97706 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
             MARY'S RESTAURANT
           </h1>
-          <p className="text-gray-600 mt-2">Sistema de Gestión - Restaurante</p>
+          <p className="text-gray-600">Sistema de Gestión - Restaurante</p>
         </div>
 
         {/* Formulario */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-8 shadow-sm border border-white/20">
+        <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-8 shadow-lg border border-white/30">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
@@ -112,7 +124,10 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoggingIn}
-              className="w-full bg-gradient-to-r from-red-500 to-amber-500 text-white py-3 px-4 rounded-lg hover:shadow-md transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full py-3 px-4 rounded-lg hover:shadow-md transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-white"
+              style={{
+                background: 'linear-gradient(135deg, #dc2626 0%, #d97706 100%)'
+              }}
             >
               {isLoggingIn ? (
                 <>
@@ -138,7 +153,7 @@ const Login: React.FC = () => {
                 type="button"
                 onClick={() => handleDemoLogin('admin', 'admin123')}
                 disabled={isLoggingIn}
-                className="text-xs bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                className="text-xs bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 border border-red-200"
               >
                 Admin
               </button>
@@ -146,7 +161,7 @@ const Login: React.FC = () => {
                 type="button"
                 onClick={() => handleDemoLogin('mesero1', 'mesero123')}
                 disabled={isLoggingIn}
-                className="text-xs bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50"
+                className="text-xs bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 border border-blue-200"
               >
                 Mesero
               </button>
@@ -154,7 +169,7 @@ const Login: React.FC = () => {
                 type="button"
                 onClick={() => handleDemoLogin('cocina1', 'cocina123')}
                 disabled={isLoggingIn}
-                className="text-xs bg-green-100 text-green-700 px-3 py-2 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+                className="text-xs bg-green-100 text-green-700 px-3 py-2 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 border border-green-200"
               >
                 Cocina
               </button>
@@ -162,7 +177,7 @@ const Login: React.FC = () => {
                 type="button"
                 onClick={() => handleDemoLogin('cajero1', 'cajero123')}
                 disabled={isLoggingIn}
-                className="text-xs bg-purple-100 text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50"
+                className="text-xs bg-purple-100 text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50 border border-purple-200"
               >
                 Cajero
               </button>
