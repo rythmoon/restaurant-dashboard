@@ -170,7 +170,7 @@ const Login: React.FC = () => {
             © 2025 MARY'S RESTAURANT
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            v1.0 - Autenticación Simple
+            @JozzyMar
           </p>
         </div>
       </div>
@@ -179,5 +179,6 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
 
 
