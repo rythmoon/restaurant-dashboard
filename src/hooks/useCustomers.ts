@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Customer } from '../lib/supabase';
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  address?: string;
+  email?: string;
+  orders_count: number;
+  total_spent: number;
+  last_order: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export const useCustomers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -23,11 +35,24 @@ export const useCustomers = () => {
     }
   };
 
-  const createCustomer = async (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'orders_count' | 'total_spent' | 'last_order'>) => {
+  const createCustomer = async (customerData: {
+    name: string;
+    phone: string;
+    address?: string;
+    email?: string;
+  }) => {
     try {
       const { data, error } = await supabase
         .from('customers')
-        .insert([customer])
+        .insert([{
+          name: customerData.name.trim(),
+          phone: customerData.phone.trim(),
+          address: customerData.address?.trim(),
+          email: customerData.email?.trim(),
+          orders_count: 0,
+          total_spent: 0,
+          last_order: null
+        }])
         .select()
         .single();
 
@@ -44,7 +69,10 @@ export const useCustomers = () => {
     try {
       const { data, error } = await supabase
         .from('customers')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ 
+          ...updates, 
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', id)
         .select()
         .single();
