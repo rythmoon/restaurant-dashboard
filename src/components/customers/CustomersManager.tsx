@@ -54,7 +54,7 @@ const CustomersManager: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-amber-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20">
           {/* Header */}
@@ -72,12 +72,12 @@ const CustomersManager: React.FC = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-64"
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 w-full sm:w-64"
                   placeholder="Buscar clientes..."
                 />
               </div>
               
-              <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 hover:shadow-md transition-all duration-300 font-medium">
+              <button className="bg-gradient-to-r from-red-500 to-amber-500 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 hover:shadow-md transition-all duration-300 font-medium">
                 <Plus size={20} />
                 <span>Nuevo Cliente</span>
               </button>
@@ -87,7 +87,7 @@ const CustomersManager: React.FC = () => {
           {/* Lista de Clientes */}
           <div className="space-y-4">
             {filteredCustomers.map((customer) => (
-              <div key={customer.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 group">
+              <div key={customer.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-200 group">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   {/* Información del Cliente */}
                   <div className="flex-1 min-w-0">
@@ -124,7 +124,7 @@ const CustomersManager: React.FC = () => {
                     {/* Estadísticas del Cliente */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-600">{customer.ordersCount}</div>
+                        <div className="text-2xl font-bold text-red-600">{customer.ordersCount}</div>
                         <div className="text-xs text-gray-500">Pedidos</div>
                       </div>
                       <div className="text-center">
@@ -164,8 +164,8 @@ const CustomersManager: React.FC = () => {
           {/* Estadísticas generales */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="bg-orange-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600">{customers.length}</div>
+              <div className="bg-red-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-red-600">{customers.length}</div>
                 <div className="text-sm text-gray-600">Total Clientes</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4 text-center">
