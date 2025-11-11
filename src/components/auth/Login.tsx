@@ -7,22 +7,36 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, loading } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoggingIn(true);
 
     if (!username.trim() || !password.trim()) {
       setError('Por favor ingresa usuario y contraseña');
+      setIsLoggingIn(false);
       return;
     }
 
-    const result = await signIn(username, password);
-    if (!result.success) {
-      setError(result.error || 'Error al iniciar sesión');
+    try {
+      const result = await signIn(username, password);
+      if (result.success) {
+        console.log('✅ Login exitoso, redirigiendo...');
+        // Esperar un momento para que el estado se actualice
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } else {
+        setError(result.error || 'Error al iniciar sesión');
+      }
+    } catch (err: any) {
+      setError('Error inesperado: ' + err.message);
+    } finally {
+      setIsLoggingIn(false);
     }
-    // ✅ NO necesitamos hacer nada más aquí porque ProtectedRoute se actualiza automáticamente
   };
 
   const handleDemoLogin = (demoUser: string, demoPass: string) => {
@@ -65,7 +79,7 @@ const Login: React.FC = () => {
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                 placeholder="Ingresa tu usuario"
-                disabled={loading}
+                disabled={isLoggingIn}
               />
             </div>
 
@@ -82,13 +96,13 @@ const Login: React.FC = () => {
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors pr-12"
                   placeholder="••••••••"
-                  disabled={loading}
+                  disabled={isLoggingIn}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  disabled={loading}
+                  disabled={isLoggingIn}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -97,10 +111,10 @@ const Login: React.FC = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isLoggingIn}
               className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 px-4 rounded-lg hover:shadow-md transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
-              {loading ? (
+              {isLoggingIn ? (
                 <>
                   <Loader className="h-5 w-5 animate-spin" />
                   <span>Iniciando Sesión...</span>
@@ -123,7 +137,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleDemoLogin('admin', 'admin123')}
-                disabled={loading}
+                disabled={isLoggingIn}
                 className="text-xs bg-orange-100 text-orange-700 px-3 py-2 rounded-lg hover:bg-orange-200 transition-colors disabled:opacity-50"
               >
                 Admin
@@ -131,7 +145,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleDemoLogin('mesero1', 'mesero123')}
-                disabled={loading}
+                disabled={isLoggingIn}
                 className="text-xs bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50"
               >
                 Mesero
@@ -139,7 +153,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleDemoLogin('cocina1', 'cocina123')}
-                disabled={loading}
+                disabled={isLoggingIn}
                 className="text-xs bg-green-100 text-green-700 px-3 py-2 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
               >
                 Cocina
@@ -147,7 +161,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleDemoLogin('cajero1', 'cajero123')}
-                disabled={loading}
+                disabled={isLoggingIn}
                 className="text-xs bg-purple-100 text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50"
               >
                 Cajero
@@ -179,6 +193,3 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-
-
-
