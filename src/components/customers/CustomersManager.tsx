@@ -1,55 +1,74 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Phone, MapPin } from 'lucide-react';
-
-interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  address?: string;
-  ordersCount: number;
-  totalSpent: number;
-  lastOrder: string;
-}
+import { Plus, Edit, Trash2, Search, Phone, MapPin, Save, X } from 'lucide-react';
+import { useCustomers } from '../../hooks/useCustomers';
 
 const CustomersManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [customers, setCustomers] = useState<Customer[]>([
-    {
-      id: '1',
-      name: 'Juan Pérez',
-      phone: '+51 987 654 321',
-      address: 'Av. Siempre Viva 123',
-      ordersCount: 5,
-      totalSpent: 245.50,
-      lastOrder: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'María García',
-      phone: '+51 955 444 333',
-      ordersCount: 3,
-      totalSpent: 128.00,
-      lastOrder: '2024-01-14'
-    },
-    {
-      id: '3',
-      name: 'Carlos López',
-      phone: '+51 966 777 888',
-      address: 'Calle Los Olivos 456',
-      ordersCount: 8,
-      totalSpent: 420.75,
-      lastOrder: '2024-01-15'
-    }
-  ]);
+  const [showForm, setShowForm] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    email: ''
+  });
+  
+  const { 
+    customers, 
+    loading, 
+    createCustomer, 
+    deleteCustomer,
+    fetchCustomers 
+  } = useCustomers();
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm)
+    customer.phone.includes(searchTerm) ||
+    customer.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const deleteCustomer = (id: string) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este cliente?')) {
-      setCustomers(customers.filter(customer => customer.id !== id));
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+
+    try {
+      // Validaciones básicas
+      if (!formData.name.trim() || !formData.phone.trim()) {
+        alert('Por favor completa al menos el nombre y teléfono del cliente');
+        return;
+      }
+
+      const result = await createCustomer({
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address || undefined,
+        email: formData.email || undefined
+      });
+
+      if (result.success) {
+        alert('✅ Cliente creado exitosamente');
+        setShowForm(false);
+        setFormData({ name: '', phone: '', address: '', email: '' });
+        // Recargar la lista para asegurar que se vea el nuevo cliente
+        await fetchCustomers();
+      } else {
+        alert('❌ Error al crear cliente: ' + result.error);
+      }
+    } catch (error: any) {
+      alert('❌ Error: ' + error.message);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string, name: string) => {
+    if (window.confirm(`¿Estás seguro de que quieres eliminar al cliente "${name}"?`)) {
+      const result = await deleteCustomer(id);
+      if (result.success) {
+        alert('✅ Cliente eliminado correctamente');
+      } else {
+        alert('❌ Error al eliminar cliente: ' + result.error);
+      }
     }
   };
 
@@ -77,89 +96,202 @@ const CustomersManager: React.FC = () => {
                 />
               </div>
               
-              <button className="bg-gradient-to-r from-red-500 to-amber-500 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 hover:shadow-md transition-all duration-300 font-medium">
+              <button 
+                onClick={() => setShowForm(true)}
+                className="bg-gradient-to-r from-red-500 to-amber-500 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 hover:shadow-md transition-all duration-300 font-medium"
+              >
                 <Plus size={20} />
                 <span>Nuevo Cliente</span>
               </button>
             </div>
           </div>
 
+          {/* Formulario Modal */}
+          {showForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl p-6 w-full max-w-md">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Nuevo Cliente</h3>
+                  <button 
+                    onClick={() => setShowForm(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={formLoading}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateCustomer} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombre *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      placeholder="Nombre completo del cliente"
+                      required
+                      disabled={formLoading}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Teléfono *
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      placeholder="Número de teléfono"
+                      required
+                      disabled={formLoading}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Dirección
+                    </label>
+                    <textarea
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      placeholder="Dirección completa"
+                      disabled={formLoading}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      placeholder="correo@ejemplo.com"
+                      disabled={formLoading}
+                    />
+                  </div>
+
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowForm(false)}
+                      disabled={formLoading}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={formLoading}
+                      className="flex-1 bg-gradient-to-r from-red-500 to-amber-500 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 font-medium"
+                    >
+                      <Save size={16} />
+                      <span>{formLoading ? 'Creando...' : 'Crear Cliente'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {/* Lista de Clientes */}
           <div className="space-y-4">
-            {filteredCustomers.map((customer) => (
-              <div key={customer.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-200 group">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  {/* Información del Cliente */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-                          <div className="flex items-center space-x-1">
-                            <Phone size={14} />
-                            <span>{customer.phone}</span>
-                          </div>
-                          {customer.address && (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Cargando clientes...</p>
+              </div>
+            ) : filteredCustomers.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-4xl text-gray-300 mb-4">👥</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  {searchTerm 
+                    ? 'Intenta con otros términos de búsqueda' 
+                    : 'Los clientes aparecerán aquí cuando los agregues'}
+                </p>
+              </div>
+            ) : (
+              filteredCustomers.map((customer) => (
+                <div key={customer.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-200 group">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    {/* Información del Cliente */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
+                          <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                             <div className="flex items-center space-x-1">
-                              <MapPin size={14} />
-                              <span>{customer.address}</span>
+                              <Phone size={14} />
+                              <span>{customer.phone}</span>
+                            </div>
+                            {customer.address && (
+                              <div className="flex items-center space-x-1">
+                                <MapPin size={14} />
+                                <span>{customer.address}</span>
+                              </div>
+                            )}
+                          </div>
+                          {customer.email && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              📧 {customer.email}
                             </div>
                           )}
                         </div>
+                        
+                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors">
+                            <Edit size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteCustomer(customer.id, customer.name)}
+                            className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
-                      
-                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                          <Edit size={16} />
-                        </button>
-                        <button 
-                          onClick={() => deleteCustomer(customer.id)}
-                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
 
-                    {/* Estadísticas del Cliente */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-red-600">{customer.ordersCount}</div>
-                        <div className="text-xs text-gray-500">Pedidos</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">S/ {customer.totalSpent.toFixed(2)}</div>
-                        <div className="text-xs text-gray-500">Total Gastado</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">S/ {(customer.totalSpent / customer.ordersCount).toFixed(2)}</div>
-                        <div className="text-xs text-gray-500">Promedio por Pedido</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm font-semibold text-gray-700">{customer.lastOrder}</div>
-                        <div className="text-xs text-gray-500">Último Pedido</div>
+                      {/* Estadísticas del Cliente */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-600">{customer.orders_count}</div>
+                          <div className="text-xs text-gray-500">Pedidos</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">S/ {customer.total_spent.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">Total Gastado</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">
+                            S/ {customer.orders_count > 0 ? (customer.total_spent / customer.orders_count).toFixed(2) : '0.00'}
+                          </div>
+                          <div className="text-xs text-gray-500">Promedio por Pedido</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-semibold text-gray-700">
+                            {customer.last_order ? new Date(customer.last_order).toLocaleDateString() : 'Nunca'}
+                          </div>
+                          <div className="text-xs text-gray-500">Último Pedido</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-
-          {/* Estado vacío */}
-          {filteredCustomers.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-4xl text-gray-300 mb-4">👥</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
-              </h3>
-              <p className="text-gray-500 text-sm">
-                {searchTerm 
-                  ? 'Intenta con otros términos de búsqueda' 
-                  : 'Los clientes aparecerán aquí cuando realicen pedidos'}
-              </p>
-            </div>
-          )}
 
           {/* Estadísticas generales */}
           <div className="mt-8 pt-6 border-t border-gray-200">
@@ -170,20 +302,20 @@ const CustomersManager: React.FC = () => {
               </div>
               <div className="bg-green-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {customers.reduce((total, customer) => total + customer.ordersCount, 0)}
+                  {customers.reduce((total, customer) => total + customer.orders_count, 0)}
                 </div>
                 <div className="text-sm text-gray-600">Pedidos Totales</div>
               </div>
               <div className="bg-blue-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  S/ {customers.reduce((total, customer) => total + customer.totalSpent, 0).toFixed(2)}
+                  S/ {customers.reduce((total, customer) => total + customer.total_spent, 0).toFixed(2)}
                 </div>
                 <div className="text-sm text-gray-600">Ingresos Totales</div>
               </div>
               <div className="bg-purple-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-purple-600">
                   {customers.length > 0 
-                    ? (customers.reduce((total, customer) => total + customer.totalSpent, 0) / customers.length).toFixed(2)
+                    ? (customers.reduce((total, customer) => total + customer.total_spent, 0) / customers.length).toFixed(2)
                     : '0'
                   }
                 </div>
