@@ -39,7 +39,7 @@ const Login: React.FC = () => {
             <ChefHat className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-black bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-            Sabores & Sazón
+            MARY'S RESTAURANT
           </h1>
           <p className="text-gray-600 mt-2">Sistema de Gestión - Restaurante</p>
         </div>
@@ -179,4 +179,5 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
 
