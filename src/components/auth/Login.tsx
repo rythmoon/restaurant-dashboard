@@ -167,7 +167,7 @@ const Login: React.FC = () => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-xs text-gray-500">
-            © 2024 Sabores & Sazón. Sistema de gestión restaurant.
+            © 2025 MARY'S RESTAURANT
           </p>
           <p className="text-xs text-gray-400 mt-1">
             v1.0 - Autenticación Simple
@@ -179,3 +179,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
