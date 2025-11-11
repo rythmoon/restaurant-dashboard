@@ -145,7 +145,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <footer className="bg-white/80 backdrop-blur-lg border-t border-white/30 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 text-center">
           <p className="text-gray-600 text-xs sm:text-sm">
-            © 2024 Sabores & Sazón. Hecho con ❤️ para tu restaurant
+            © 2025 MARY'S RESTAURANT. Hecho por @JozzyMar
             {user && ` | Conectado como: ${user.name}`}
           </p>
         </div>
@@ -155,3 +155,4 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 };
 
 export default DashboardLayout;
+
