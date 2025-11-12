@@ -54,17 +54,23 @@ const OrderReception: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
-  // ✅ REF PARA MANEJAR CLICKS FUERA DEL AUTOCOMPLETADO
+  // ✅ REFS PARA MANEJAR CLICKS
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // ✅ USAR HOOK DE CLIENTES
   const { customers, loading: customersLoading } = useCustomers();
   const { menuItems: menuDelDia, getCategories, getAllItems } = useMenu();
 
-  // ✅ EFECTO PARA CERRAR SUGERENCIAS AL HACER CLIC FUERA
+  // ✅ EFECTO PARA CERRAR SUGERENCIAS AL HACER CLIC FUERA (CORREGIDO)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+      if (
+        suggestionsRef.current && 
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     };
@@ -81,7 +87,7 @@ const OrderReception: React.FC = () => {
       const filtered = customers.filter(customer =>
         customer.name.toLowerCase().includes(customerName.toLowerCase()) ||
         customer.phone.includes(customerName)
-      ).slice(0, 5); // Mostrar máximo 5 sugerencias
+      ).slice(0, 5);
       
       setCustomerSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
@@ -99,13 +105,13 @@ const OrderReception: React.FC = () => {
     }
   }, []);
 
-  // ✅ FUNCIÓN PARA SELECCIONAR UN CLIENTE (CORREGIDA)
+  // ✅ FUNCIÓN PARA SELECCIONAR UN CLIENTE (MEJORADA)
   const selectCustomer = (customer: any) => {
     setCustomerName(customer.name);
     setPhone(customer.phone || '');
     setAddress(customer.address || '');
     setSelectedCustomer(customer);
-    setShowSuggestions(false); // ✅ CERRAR INMEDIATAMENTE
+    setShowSuggestions(false);
     
     showToast(`Cliente ${customer.name} seleccionado`, 'success');
   };
@@ -119,21 +125,36 @@ const OrderReception: React.FC = () => {
     setShowSuggestions(false);
   };
 
+  // ✅ MANEJADOR PARA EL INPUT (MEJORADO)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomerName(e.target.value);
+    setSelectedCustomer(null);
+    if (e.target.value.length > 1) {
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  // ✅ MANEJADOR PARA EL FOCO DEL INPUT
+  const handleInputFocus = () => {
+    if (customerName.length > 1 && customerSuggestions.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
   // ✅ OBTENER ITEMS ACTUALIZADOS DEL MENÚ
   const allMenuItems = getAllItems();
   const categories = getCategories();
 
   // ✅ FUNCIÓN CORREGIDA: Obtener items a mostrar
   const getItemsToShow = () => {
-    // Si hay término de búsqueda, filtrar todos los items
     if (searchTerm) {
       return allMenuItems.filter((item: MenuItem) =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.category.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
-    // Si no hay búsqueda, mostrar los items de la categoría activa
     return menuDelDia[activeCategory] || [];
   };
 
@@ -177,7 +198,6 @@ const OrderReception: React.FC = () => {
     });
   };
 
-  // ✅ FUNCIÓN CORREGIDA: Actualizar carrito con precios actualizados
   const updateQuantity = (itemId: string, quantity: number) => {
     if (quantity === 0) {
       removeFromCart(itemId);
@@ -464,9 +484,9 @@ const OrderReception: React.FC = () => {
           </div>
         )}
 
-        {/* LAYOUT COMPACTO PARA ESCRITORIO - REORGANIZADO CON AUTOCOMPLETADO */}
+        {/* LAYOUT COMPACTO PARA ESCRITORIO */}
         <div className="hidden lg:block">
-          {/* Información del Cliente - CON AUTOCOMPLETADO */}
+          {/* Información del Cliente - CON AUTOCOMPLETADO CORREGIDO */}
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20 mb-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Información del Pedido</h2>
@@ -506,25 +526,21 @@ const OrderReception: React.FC = () => {
                 </div>
               </div>
 
-              {/* Formulario del Cliente - CON AUTOCOMPLETADO */}
+              {/* Formulario del Cliente - CON AUTOCOMPLETADO CORREGIDO */}
               <div className="md:col-span-3">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Campo de Nombre con Autocompletado */}
+                  {/* Campo de Nombre con Autocompletado - CORREGIDO */}
                   <div className="relative md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Nombre del Cliente *
                     </label>
                     <div className="relative">
                       <input
+                        ref={inputRef}
                         type="text"
                         value={customerName}
-                        onChange={(e) => {
-                          setCustomerName(e.target.value);
-                          if (e.target.value.length > 1) {
-                            setShowSuggestions(true);
-                          }
-                        }}
-                        onFocus={() => customerName.length > 1 && setShowSuggestions(true)}
+                        onChange={handleInputChange}
+                        onFocus={handleInputFocus}
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 pr-10"
                         placeholder="Buscar cliente..."
                         required
@@ -536,7 +552,7 @@ const OrderReception: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Lista de Sugerencias - CON REF PARA MANEJAR CLICKS */}
+                    {/* Lista de Sugerencias - CORREGIDA */}
                     {showSuggestions && customerSuggestions.length > 0 && (
                       <div 
                         ref={suggestionsRef}
@@ -545,11 +561,7 @@ const OrderReception: React.FC = () => {
                         {customerSuggestions.map((customer) => (
                           <div
                             key={customer.id}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              selectCustomer(customer);
-                            }}
+                            onClick={() => selectCustomer(customer)}
                             className="p-3 hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
                           >
                             <div className="flex items-center space-x-3">
