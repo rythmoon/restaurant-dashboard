@@ -142,7 +142,8 @@ const OrderReception: React.FC = () => {
     }
   };
 
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  // CORREGIDO: Eliminado el parámetro no utilizado
+  const handleInputBlur = () => {
     setTimeout(() => {
       setShowSuggestions(false);
     }, 200);
