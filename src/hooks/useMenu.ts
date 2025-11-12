@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MenuItem } from '../types';
-import { supabaseService } from '../services/supabase';
+import { supabaseService } from '../lib/supabase';
 
 // Datos de fallback para el menú del día
 const dailyMenuOptions = {
