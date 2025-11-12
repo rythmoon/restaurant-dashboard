@@ -398,7 +398,7 @@ export const useMenu = () => {
   };
 
   // Verificar si una categoría ya tiene 4 platos del día
-  const hasMaxDailyItems = (categoryId: string) => {
+  const hasMaxDailyItems = () => {
     // Implementación simplificada para compatibilidad
     return false;
   };
