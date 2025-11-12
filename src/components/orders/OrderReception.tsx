@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, X, ShoppingBag, ArrowRight, Search, Trash2 } from 'lucide-react';
+import { Plus, Minus, X, ShoppingBag, ArrowRight, Search, Trash2, User } from 'lucide-react';
 import { MenuItem, OrderItem, OrderSource, Order } from '../../types';
 import OrderTicket from './OrderTicket';
 import { useMenu } from '../../hooks/useMenu';
+import { useCustomers } from '../../hooks/useCustomers'; // ✅ IMPORTAR HOOK DE CLIENTES
 
 // Componente de Notificación Toast mejorado sin íconos
 const ToastNotification: React.FC<{
@@ -47,9 +48,31 @@ const OrderReception: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('🥗 Entradas');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // ✅ NUEVO ESTADO PARA AUTOCOMPLETADO
+  const [customerSuggestions, setCustomerSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
-  // ✅ USAR EL HOOK CENTRALIZADO DEL MENÚ
+  // ✅ USAR HOOK DE CLIENTES
+  const { customers, loading: customersLoading } = useCustomers();
   const { menuItems: menuDelDia, getCategories, getAllItems } = useMenu();
+
+  // ✅ EFECTO PARA FILTRAR SUGERENCIAS CUANDO ESCRIBE EL NOMBRE
+  useEffect(() => {
+    if (customerName.trim().length > 1) {
+      const filtered = customers.filter(customer =>
+        customer.name.toLowerCase().includes(customerName.toLowerCase()) ||
+        customer.phone.includes(customerName)
+      ).slice(0, 5); // Mostrar máximo 5 sugerencias
+      
+      setCustomerSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      setCustomerSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [customerName, customers]);
 
   // Cargar pedidos desde localStorage al iniciar
   useEffect(() => {
@@ -58,6 +81,25 @@ const OrderReception: React.FC = () => {
       console.log('Pedidos cargados desde localStorage:', JSON.parse(savedOrders).length);
     }
   }, []);
+
+  // ✅ FUNCIÓN PARA SELECCIONAR UN CLIENTE
+  const selectCustomer = (customer: any) => {
+    setCustomerName(customer.name);
+    setPhone(customer.phone || '');
+    setAddress(customer.address || '');
+    setSelectedCustomer(customer);
+    setShowSuggestions(false);
+    
+    showToast(`Cliente ${customer.name} seleccionado`, 'success');
+  };
+
+  // ✅ FUNCIÓN PARA LIMPIAR SELECCIÓN DE CLIENTE
+  const clearCustomerSelection = () => {
+    setSelectedCustomer(null);
+    setPhone('');
+    setAddress('');
+    setShowSuggestions(false);
+  };
 
   // ✅ OBTENER ITEMS ACTUALIZADOS DEL MENÚ
   const allMenuItems = getAllItems();
@@ -194,6 +236,7 @@ const OrderReception: React.FC = () => {
       setOrderNotes('');
       setShowConfirmation(false);
       setShowCartDrawer(false);
+      setSelectedCustomer(null); // ✅ LIMPIAR CLIENTE SELECCIONADO
       
       setTimeout(() => {
         const printButton = document.querySelector(`[data-order-id="${lastOrder.id}"]`) as HTMLButtonElement;
@@ -404,11 +447,22 @@ const OrderReception: React.FC = () => {
           </div>
         )}
 
-        {/* LAYOUT COMPACTO PARA ESCRITORIO - REORGANIZADO */}
+        {/* LAYOUT COMPACTO PARA ESCRITORIO - REORGANIZADO CON AUTOCOMPLETADO */}
         <div className="hidden lg:block">
-          {/* Información del Cliente - ARRIBA DEL TODO */}
+          {/* Información del Cliente - CON AUTOCOMPLETADO */}
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Información del Pedido</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Información del Pedido</h2>
+              {selectedCustomer && (
+                <button
+                  onClick={clearCustomerSelection}
+                  className="text-sm text-red-500 hover:text-red-700 flex items-center space-x-1"
+                >
+                  <X size={14} />
+                  <span>Cambiar cliente</span>
+                </button>
+              )}
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* Tipo de Pedido */}
@@ -435,24 +489,74 @@ const OrderReception: React.FC = () => {
                 </div>
               </div>
 
-              {/* Formulario del Cliente */}
+              {/* Formulario del Cliente - CON AUTOCOMPLETADO */}
               <div className="md:col-span-3">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
+                  {/* Campo de Nombre con Autocompletado */}
+                  <div className="relative md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Nombre del Cliente *
                     </label>
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Ingresa el nombre"
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        onFocus={() => customerName.length > 1 && setShowSuggestions(true)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 pr-10"
+                        placeholder="Buscar cliente..."
+                        required
+                      />
+                      {customersLoading && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Lista de Sugerencias */}
+                    {showSuggestions && customerSuggestions.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {customerSuggestions.map((customer) => (
+                          <div
+                            key={customer.id}
+                            onClick={() => selectCustomer(customer)}
+                            className="p-3 hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-amber-500 rounded-full flex items-center justify-center">
+                                <User size={14} className="text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900 text-sm truncate">
+                                  {customer.name}
+                                </div>
+                                <div className="text-gray-600 text-xs">
+                                  📞 {customer.phone}
+                                </div>
+                                {customer.address && (
+                                  <div className="text-gray-500 text-xs truncate">
+                                    📍 {customer.address}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs font-semibold text-green-600">
+                                  {customer.orders_count} pedidos
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  S/ {customer.total_spent.toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <div>
+                  {/* Campo de Teléfono */}
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Teléfono *
                     </label>
@@ -466,8 +570,9 @@ const OrderReception: React.FC = () => {
                     />
                   </div>
 
+                  {/* Campo de Dirección (solo para delivery) */}
                   {activeTab === 'delivery' && (
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Dirección de Envío *
                       </label>
@@ -482,6 +587,40 @@ const OrderReception: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Indicador de Cliente Seleccionado */}
+                  {selectedCustomer && (
+                    <div className="md:col-span-3">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                              <User size={16} className="text-white" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-green-800">
+                                {selectedCustomer.name}
+                              </div>
+                              <div className="text-green-600 text-sm">
+                                Cliente frecuente • {selectedCustomer.orders_count} pedidos
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-semibold text-green-800">
+                              Total gastado: S/ {selectedCustomer.total_spent.toFixed(2)}
+                            </div>
+                            <div className="text-green-600 text-xs">
+                              Último pedido: {selectedCustomer.last_order ? 
+                                new Date(selectedCustomer.last_order).toLocaleDateString() : 
+                                'Nunca'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notas del Pedido */}
                   <div className="md:col-span-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Notas del Pedido
@@ -518,7 +657,7 @@ const OrderReception: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Navegación de Categorías - AHORA FUNCIONA CORRECTAMENTE */}
+                {/* Navegación de Categorías */}
                 {!searchTerm && (
                   <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
                     {categories.map(category => (
@@ -537,7 +676,7 @@ const OrderReception: React.FC = () => {
                   </div>
                 )}
 
-                {/* Grid de Productos Compacto - AHORA MUESTRA LOS PRODUCTOS CORRECTOS */}
+                {/* Grid de Productos Compacto */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {currentItems.map((item: MenuItem) => {
                     const cartItem = cart.find(cartItem => cartItem.menuItem.id === item.id);
@@ -634,7 +773,7 @@ const OrderReception: React.FC = () => {
               </div>
             </div>
 
-            {/* Carrito - Ocupa 1/3 del espacio y MUESTRA LOS PRODUCTOS */}
+            {/* Carrito - Ocupa 1/3 del espacio */}
             <div className="xl:col-span-1">
               <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-sm border border-white/20 sticky top-6">
                 <div className="flex items-center justify-between mb-6">
@@ -657,7 +796,7 @@ const OrderReception: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Lista de Items - MEJORADA para mostrar nombres */}
+                    {/* Lista de Items */}
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {cart.map((item, index) => (
                         <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
