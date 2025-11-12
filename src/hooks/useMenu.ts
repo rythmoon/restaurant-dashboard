@@ -5,47 +5,46 @@ import { MenuItem } from '../types';
 export const useMenu = () => {
   const [menuItems, setMenuItems] = useState<{ [key: string]: MenuItem[] }>({});
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
 
-  // Cargar categorías y productos
+  // Cargar menú desde Supabase
   const loadMenuData = async () => {
     try {
       setLoading(true);
       
-      // Cargar categorías
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('categories')
-        .select('*')
-        .order('sort_order', { ascending: true });
-
-      if (categoriesError) throw categoriesError;
-
       // Cargar productos
       const { data: menuItemsData, error: menuItemsError } = await supabase
         .from('menu_items')
-        .select('*, categories(name)')
-        .order('sort_order', { ascending: true });
+        .select('*')
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true });
 
       if (menuItemsError) throw menuItemsError;
 
       // Organizar productos por categoría
       const organizedMenu: { [key: string]: MenuItem[] } = {};
       
-      categoriesData?.forEach(category => {
-        organizedMenu[category.name] = menuItemsData
-          ?.filter(item => item.categories.name === category.name)
-          .map(item => ({
+      if (menuItemsData) {
+        menuItemsData.forEach(item => {
+          if (!organizedMenu[item.category]) {
+            organizedMenu[item.category] = [];
+          }
+          
+          organizedMenu[item.category].push({
             id: item.id,
             name: item.name,
             description: item.description,
             price: parseFloat(item.price),
-            category: item.categories.name,
+            category: item.category,
             type: item.type,
             available: item.available
-          })) || [];
-      });
+          });
+        });
+      }
 
-      setCategories(categoriesData || []);
+      // Obtener categorías únicas
+      const uniqueCategories = [...new Set(menuItemsData?.map(item => item.category) || [])];
+      setCategories(uniqueCategories);
       setMenuItems(organizedMenu);
       
     } catch (error) {
@@ -65,23 +64,17 @@ export const useMenu = () => {
     available?: boolean;
   }) => {
     try {
-      // Encontrar el ID de la categoría
-      const category = categories.find(cat => cat.name === itemData.category);
-      if (!category) {
-        throw new Error('Categoría no encontrada');
-      }
-
       const { data, error } = await supabase
         .from('menu_items')
         .insert([{
           name: itemData.name.trim(),
           description: itemData.description?.trim(),
           price: itemData.price,
-          category_id: category.id,
+          category: itemData.category,
           type: itemData.type,
           available: itemData.available ?? true
         }])
-        .select('*, categories(name)')
+        .select()
         .single();
 
       if (error) throw error;
@@ -92,7 +85,7 @@ export const useMenu = () => {
         name: data.name,
         description: data.description,
         price: parseFloat(data.price),
-        category: data.categories.name,
+        category: data.category,
         type: data.type,
         available: data.available
       };
@@ -101,6 +94,11 @@ export const useMenu = () => {
         ...prev,
         [itemData.category]: [...(prev[itemData.category] || []), newItem]
       }));
+
+      // Actualizar categorías si es nueva
+      if (!categories.includes(itemData.category)) {
+        setCategories(prev => [...prev, itemData.category]);
+      }
 
       return { success: true, data: newItem };
     } catch (error: any) {
@@ -118,36 +116,19 @@ export const useMenu = () => {
     available: boolean;
   }>) => {
     try {
-      // Si cambia la categoría, necesitamos el nuevo category_id
-      let categoryId: string | undefined;
-      if (updates.category) {
-        const category = categories.find(cat => cat.name === updates.category);
-        if (!category) {
-          throw new Error('Categoría no encontrada');
-        }
-        categoryId = category.id;
-      }
-
-      const updateData: any = {
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
-
-      if (categoryId) {
-        updateData.category_id = categoryId;
-        delete updateData.category;
-      }
-
       const { data, error } = await supabase
         .from('menu_items')
-        .update(updateData)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', itemId)
-        .select('*, categories(name)')
+        .select()
         .single();
 
       if (error) throw error;
 
-      // Recargar el menú completo para reflejar cambios de categoría
+      // Recargar el menú completo para reflejar cambios
       await loadMenuData();
 
       return { success: true, data };
@@ -186,7 +167,7 @@ export const useMenu = () => {
 
   // Obtener todas las categorías
   const getCategories = () => {
-    return categories.map(cat => cat.name);
+    return categories;
   };
 
   // Cargar datos al iniciar
