@@ -4,6 +4,7 @@ import { MenuItem } from '../types';
 
 export const useMenu = () => {
   const [menuItems, setMenuItems] = useState<{ [key: string]: MenuItem[] }>({});
+  const [dailySpecialItems, setDailySpecialItems] = useState<{ [key: string]: MenuItem[] }>({});
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
 
@@ -23,22 +24,34 @@ export const useMenu = () => {
 
       // Organizar productos por categoría
       const organizedMenu: { [key: string]: MenuItem[] } = {};
+      const organizedDailySpecials: { [key: string]: MenuItem[] } = {};
       
       if (menuItemsData) {
         menuItemsData.forEach(item => {
-          if (!organizedMenu[item.category]) {
-            organizedMenu[item.category] = [];
-          }
-          
-          organizedMenu[item.category].push({
+          const menuItem: MenuItem = {
             id: item.id,
             name: item.name,
             description: item.description,
             price: parseFloat(item.price),
             category: item.category,
             type: item.type,
-            available: item.available
-          });
+            available: item.available,
+            isDailySpecial: item.is_daily_special // Nuevo campo
+          };
+          
+          // Todos los productos
+          if (!organizedMenu[item.category]) {
+            organizedMenu[item.category] = [];
+          }
+          organizedMenu[item.category].push(menuItem);
+          
+          // Solo productos del día
+          if (item.is_daily_special) {
+            if (!organizedDailySpecials[item.category]) {
+              organizedDailySpecials[item.category] = [];
+            }
+            organizedDailySpecials[item.category].push(menuItem);
+          }
         });
       }
 
@@ -46,6 +59,7 @@ export const useMenu = () => {
       const uniqueCategories = [...new Set(menuItemsData?.map(item => item.category) || [])];
       setCategories(uniqueCategories);
       setMenuItems(organizedMenu);
+      setDailySpecialItems(organizedDailySpecials);
       
     } catch (error) {
       console.error('Error loading menu data:', error);
@@ -62,6 +76,7 @@ export const useMenu = () => {
     category: string;
     type: 'food' | 'drink';
     available?: boolean;
+    isDailySpecial?: boolean;
   }) => {
     try {
       const { data, error } = await supabase
@@ -72,7 +87,8 @@ export const useMenu = () => {
           price: itemData.price,
           category: itemData.category,
           type: itemData.type,
-          available: itemData.available ?? true
+          available: itemData.available ?? true,
+          is_daily_special: itemData.isDailySpecial ?? false
         }])
         .select()
         .single();
@@ -87,13 +103,22 @@ export const useMenu = () => {
         price: parseFloat(data.price),
         category: data.category,
         type: data.type,
-        available: data.available
+        available: data.available,
+        isDailySpecial: data.is_daily_special
       };
 
       setMenuItems(prev => ({
         ...prev,
         [itemData.category]: [...(prev[itemData.category] || []), newItem]
       }));
+
+      // Si es del día, agregar también a dailySpecialItems
+      if (data.is_daily_special) {
+        setDailySpecialItems(prev => ({
+          ...prev,
+          [itemData.category]: [...(prev[itemData.category] || []), newItem]
+        }));
+      }
 
       // Actualizar categorías si es nueva
       if (!categories.includes(itemData.category)) {
@@ -114,14 +139,23 @@ export const useMenu = () => {
     category: string;
     type: 'food' | 'drink';
     available: boolean;
+    isDailySpecial: boolean;
   }>) => {
     try {
+      const updateData: any = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
+      // Convertir isDailySpecial a is_daily_special para la base de datos
+      if (updates.isDailySpecial !== undefined) {
+        updateData.is_daily_special = updates.isDailySpecial;
+        delete updateData.isDailySpecial;
+      }
+
       const { data, error } = await supabase
         .from('menu_items')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', itemId)
         .select()
         .single();
@@ -132,6 +166,27 @@ export const useMenu = () => {
       await loadMenuData();
 
       return { success: true, data };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  // Toggle producto del día
+  const toggleDailySpecial = async (itemId: string, isDailySpecial: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ 
+          is_daily_special: isDailySpecial,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      // Recargar el menú
+      await loadMenuData();
+      return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -165,6 +220,16 @@ export const useMenu = () => {
     return menuItems[category] || [];
   };
 
+  // Obtener productos del día por categoría
+  const getDailySpecialsByCategory = (category: string) => {
+    return dailySpecialItems[category] || [];
+  };
+
+  // Obtener todos los productos del día
+  const getAllDailySpecials = () => {
+    return Object.values(dailySpecialItems).flat();
+  };
+
   // Obtener todas las categorías
   const getCategories = () => {
     return categories;
@@ -177,13 +242,17 @@ export const useMenu = () => {
 
   return {
     menuItems,
+    dailySpecialItems,
     categories,
     loading,
     getAllItems,
     getItemsByCategory,
+    getDailySpecialsByCategory,
+    getAllDailySpecials,
     getCategories,
     createItem,
     updateItem,
+    toggleDailySpecial,
     deleteItem,
     refreshMenu: loadMenuData
   };
