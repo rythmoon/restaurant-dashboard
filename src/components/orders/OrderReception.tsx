@@ -69,9 +69,9 @@ const OrderReception: React.FC = () => {
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Hooks - ✅ CORREGIDO: usando las funciones correctas
+  // Hooks - ✅ CORREGIDO: removida la variable getCategories que no se usa
   const { customers, loading: customersLoading } = useCustomers();
-  const { getDailySpecialsByCategory, getCategories, getAllDailySpecials } = useMenu();
+  const { getDailySpecialsByCategory, getAllDailySpecials } = useMenu();
 
   // Efecto para cerrar sugerencias al hacer click fuera
   useEffect(() => {
@@ -164,10 +164,10 @@ const OrderReception: React.FC = () => {
 
   // Obtener items del menú - ✅ CORREGIDO: usando las funciones correctas
   const allMenuItems = getAllDailySpecials();
-  const categories = ['Entradas', 'Platos de Fondo', 'Bebidas'].filter(cat => 
-    etCategories().includes(cat)
-  );
-    
+  
+  // ✅ CORREGIDO: Definir categorías en el orden deseado
+  const categories = ['Entradas', 'Platos de Fondo', 'Bebidas'];
+
   const getItemsToShow = () => {
     if (searchTerm) {
       return allMenuItems.filter((item: MenuItem) =>
@@ -1183,4 +1183,3 @@ const OrderReception: React.FC = () => {
 };
 
 export default OrderReception;
-
