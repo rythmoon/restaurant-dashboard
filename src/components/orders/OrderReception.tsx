@@ -164,8 +164,10 @@ const OrderReception: React.FC = () => {
 
   // Obtener items del menú - ✅ CORREGIDO: usando las funciones correctas
   const allMenuItems = getAllDailySpecials();
-  const categories = getCategories();
-
+  const categories = ['Entradas', 'Platos de Fondo', 'Bebidas'].filter(cat => 
+    etCategories().includes(cat)
+  );
+    
   const getItemsToShow = () => {
     if (searchTerm) {
       return allMenuItems.filter((item: MenuItem) =>
@@ -1181,3 +1183,4 @@ const OrderReception: React.FC = () => {
 };
 
 export default OrderReception;
+
