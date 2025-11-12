@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Save, X, Star, StarOff } from 'lucide-react';
 import { MenuItem } from '../../types';
 import { useMenu } from '../../hooks/useMenu';
 
@@ -17,18 +17,20 @@ const MenuManager: React.FC = () => {
     price: '',
     category: 'Entradas',
     type: 'food' as 'food' | 'drink',
-    available: true
+    available: true,
+    isDailySpecial: false
   });
 
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
-  // Usar el hook del menú - ✅ CORREGIDO: removida la variable menuItems que no se usa
+  // Usar el hook del menú
   const { 
     loading, 
     getAllItems, 
     getCategories, 
     createItem,
     updateItem,
+    toggleDailySpecial,
     deleteItem 
   } = useMenu();
 
@@ -51,7 +53,8 @@ const MenuManager: React.FC = () => {
       price: '',
       category: 'Entradas',
       type: 'food',
-      available: true
+      available: true,
+      isDailySpecial: false
     });
     setShowForm(true);
   };
@@ -65,9 +68,20 @@ const MenuManager: React.FC = () => {
       price: item.price.toString(),
       category: item.category,
       type: item.type,
-      available: item.available
+      available: item.available,
+      isDailySpecial: item.isDailySpecial || false
     });
     setShowForm(true);
+  };
+
+  // Toggle producto del día
+  const handleToggleDailySpecial = async (item: MenuItem) => {
+    const result = await toggleDailySpecial(item.id, !item.isDailySpecial);
+    if (result.success) {
+      // Feedback visual opcional
+    } else {
+      alert('❌ Error al actualizar producto del día');
+    }
   };
 
   // Crear o actualizar producto
@@ -98,7 +112,8 @@ const MenuManager: React.FC = () => {
           price: price,
           category: formData.category,
           type: formData.type,
-          available: formData.available
+          available: formData.available,
+          isDailySpecial: formData.isDailySpecial
         });
       } else {
         // Crear nuevo producto
@@ -108,7 +123,8 @@ const MenuManager: React.FC = () => {
           price: price,
           category: formData.category,
           type: formData.type,
-          available: formData.available
+          available: formData.available,
+          isDailySpecial: formData.isDailySpecial
         });
       }
 
@@ -122,7 +138,8 @@ const MenuManager: React.FC = () => {
           price: '',
           category: 'Entradas',
           type: 'food',
-          available: true
+          available: true,
+          isDailySpecial: false
         });
       } else {
         alert(`❌ Error al ${editingItem ? 'actualizar' : 'crear'} producto: ` + result.error);
@@ -297,6 +314,20 @@ const MenuManager: React.FC = () => {
                     </label>
                   </div>
 
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="isDailySpecial"
+                      checked={formData.isDailySpecial}
+                      onChange={(e) => setFormData({...formData, isDailySpecial: e.target.checked})}
+                      className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-500"
+                      disabled={formLoading}
+                    />
+                    <label htmlFor="isDailySpecial" className="text-sm font-medium text-gray-700">
+                      Producto del Día (aparece en Recepción)
+                    </label>
+                  </div>
+
                   <div className="flex space-x-3 pt-4">
                     <button
                       type="button"
@@ -381,13 +412,32 @@ const MenuManager: React.FC = () => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredItems.map((item: MenuItem) => (
-                  <div key={item.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-200 group">
+                  <div key={item.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-200 group relative">
+                    {/* Badge de producto del día */}
+                    {item.isDailySpecial && (
+                      <div className="absolute -top-2 -left-2 bg-yellow-500 text-white px-2 py-1 rounded-lg text-xs font-bold shadow-lg flex items-center space-x-1">
+                        <Star size={12} />
+                        <span>Del Día</span>
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 truncate">{item.name}</h3>
                         <p className="text-sm text-gray-500">{item.category}</p>
                       </div>
                       <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleToggleDailySpecial(item)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            item.isDailySpecial 
+                              ? 'text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50' 
+                              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                          }`}
+                          title={item.isDailySpecial ? 'Quitar del menú del día' : 'Agregar al menú del día'}
+                        >
+                          {item.isDailySpecial ? <Star size={16} fill="currentColor" /> : <StarOff size={16} />}
+                        </button>
                         <button 
                           onClick={() => handleEditItem(item)}
                           className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
@@ -445,7 +495,7 @@ const MenuManager: React.FC = () => {
 
           {/* Estadísticas */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="bg-red-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-red-600">{allMenuItems.length}</div>
                 <div className="text-sm text-gray-600">Total de Productos</div>
@@ -461,6 +511,12 @@ const MenuManager: React.FC = () => {
                   {allMenuItems.filter((item: MenuItem) => item.type === 'food').length}
                 </div>
                 <div className="text-sm text-gray-600">Platos de Comida</div>
+              </div>
+              <div className="bg-yellow-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {allMenuItems.filter((item: MenuItem) => item.isDailySpecial).length}
+                </div>
+                <div className="text-sm text-gray-600">Productos del Día</div>
               </div>
             </div>
           </div>
