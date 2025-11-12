@@ -38,14 +38,6 @@ export interface MenuItem {
   updated_at: string;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  emoji?: string;
-  sort_order: number;
-  created_at: string;
-}
-
 export interface Order {
   id: string;
   customer_id?: string;
@@ -110,7 +102,7 @@ export const supabaseService = {
     return data as MenuItem[];
   },
 
-  async getDailyMenuItems(menuType: 'default' | 'alternative' = 'default') {
+  async getDailyMenuItems() { // CORREGIDO: removido parámetro no usado
     // Para el menú del día, filtramos por categorías de comida
     const { data, error } = await supabase
       .from('menu_items')
@@ -181,7 +173,6 @@ export const supabaseService = {
   // ===== MENÚ DEL DÍA =====
   async getCurrentDailyMenu() {
     // Usamos localStorage como fallback para el menú del día
-    // Puedes crear una tabla daily_menus después si lo necesitas
     const saved = localStorage.getItem('current-daily-menu');
     return saved ? parseInt(saved) : 0;
   },
@@ -233,11 +224,21 @@ export const supabaseService = {
   },
 
   async updateCustomerStats(customerId: string, orderTotal: number) {
+    // Primero obtenemos los datos actuales del cliente
+    const { data: currentCustomer, error: fetchError } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', customerId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+
+    // Luego actualizamos con los nuevos valores
     const { data, error } = await supabase
       .from('customers')
       .update({
-        orders_count: supabase.sql`orders_count + 1`,
-        total_spent: supabase.sql`total_spent + ${orderTotal}`,
+        orders_count: (currentCustomer.orders_count || 0) + 1,
+        total_spent: (currentCustomer.total_spent || 0) + orderTotal,
         last_order: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
