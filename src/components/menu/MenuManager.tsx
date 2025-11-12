@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Search, Save, X, Tag, Star, StarOff } from 'lucide-react';
 import { useMenu } from '../../hooks/useMenu';
+import { MenuItem } from '../../types';
 
 const MenuManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [editPrice, setEditPrice] = useState('');
   const [formLoading, setFormLoading] = useState(false);
 
@@ -36,13 +37,13 @@ const MenuManager: React.FC = () => {
     toggleDailySpecial,
     hasMaxDailyItems,
     getCategoriesWithDailyCount,
-    updateItemPrice, // Mantener para compatibilidad pero no usar
-    deleteItem // Mantener para compatibilidad pero no usar
+    updateItemPrice,
+    deleteItem
   } = useMenu();
 
   // Filtrar items
-  const allItems = Object.values(menuItems).flat();
-  const filteredItems = allItems.filter(item =>
+  const allItems: MenuItem[] = Object.values(menuItems).flat();
+  const filteredItems = allItems.filter((item: MenuItem) =>
     (activeCategory === 'all' || item.category === activeCategory) &&
     (item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      item.description?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -52,7 +53,7 @@ const MenuManager: React.FC = () => {
   const categoriesWithCount = getCategoriesWithDailyCount();
 
   // Función para editar precio
-  const startEditPrice = (item: any) => {
+  const startEditPrice = (item: MenuItem) => {
     setEditingItem(item);
     setEditPrice(item.price.toString());
   };
@@ -141,10 +142,8 @@ const MenuManager: React.FC = () => {
   };
 
   // Toggle plato del día
-  const handleToggleDailySpecial = async (item: any) => {
-    const categoryId = item.category_id;
-    
-    if (!item.is_daily_special && hasMaxDailyItems(categoryId)) {
+  const handleToggleDailySpecial = async (item: MenuItem) => {
+    if (!item.is_daily_special && hasMaxDailyItems(item.category_id || '')) {
       alert('❌ Esta categoría ya tiene 4 platos del día. Elimina uno primero.');
       return;
     }
@@ -448,7 +447,7 @@ const MenuManager: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredItems.map((item) => (
+              {filteredItems.map((item: MenuItem) => (
                 <div key={item.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-red-300 hover:shadow-md transition-all duration-200 group">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1 min-w-0">
@@ -564,13 +563,13 @@ const MenuManager: React.FC = () => {
               </div>
               <div className="bg-green-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {allItems.filter(item => item.available).length}
+                  {allItems.filter((item: MenuItem) => item.available).length}
                 </div>
                 <div className="text-sm text-gray-600">Disponibles</div>
               </div>
               <div className="bg-blue-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  {allItems.filter(item => item.is_daily_special).length}
+                  {allItems.filter((item: MenuItem) => item.is_daily_special).length}
                 </div>
                 <div className="text-sm text-gray-600">En Menú del Día</div>
               </div>
