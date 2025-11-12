@@ -111,19 +111,21 @@ const OrderReception: React.FC = () => {
     }
   }, []);
 
-  // Función para seleccionar un cliente
-  const selectCustomer = (customer: any, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    setCustomerName(customer.name);
-    setPhone(customer.phone || '');
-    setAddress(customer.address || '');
-    setSelectedCustomer(customer);
-    setShowSuggestions(false);
-    
-    showToast(`Cliente ${customer.name} seleccionado`, 'success');
-  };
+  // Función para seleccionar un cliente (CORREGIDA PARA MÓVIL)
+const selectCustomer = (customer: any) => {
+  setCustomerName(customer.name);
+  setPhone(customer.phone || '');
+  setAddress(customer.address || '');
+  setSelectedCustomer(customer);
+  setShowSuggestions(false);
+  
+  // Blur del input para cerrar el teclado en móvil
+  if (inputRef.current) {
+    inputRef.current.blur();
+  }
+  
+  showToast(`Cliente ${customer.name} seleccionado`, 'success');
+};
 
   // Función para limpiar selección de cliente
   const clearCustomerSelection = () => {
@@ -153,11 +155,12 @@ const OrderReception: React.FC = () => {
     }
   };
 
-  const handleInputBlur = () => {
-    setTimeout(() => {
-      setShowSuggestions(false);
-    }, 200);
-  };
+  // CORREGIDO: Aumentado el delay para móvil
+const handleInputBlur = () => {
+  setTimeout(() => {
+    setShowSuggestions(false);
+  }, 300); // Cambiar de 200 a 300
+};
 
   // Obtener items del menú
   const allMenuItems = getAllItems();
@@ -1168,3 +1171,4 @@ const OrderReception: React.FC = () => {
 };
 
 export default OrderReception;
+
