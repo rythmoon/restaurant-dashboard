@@ -56,7 +56,7 @@ const OrderReception: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>('🥗 Entradas');
+  const [activeCategory, setActiveCategory] = useState<string>('Entradas');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   
@@ -69,7 +69,7 @@ const OrderReception: React.FC = () => {
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Hooks
+  // Hooks - ✅ CORREGIDO: usando las funciones correctas
   const { customers, loading: customersLoading } = useCustomers();
   const { getDailySpecialsByCategory, getCategories, getAllDailySpecials } = useMenu();
 
@@ -162,13 +162,13 @@ const OrderReception: React.FC = () => {
     }, 300);
   };
 
-  // Obtener items del menú
-  const allMenuItems = getAllItems();
+  // Obtener items del menú - ✅ CORREGIDO: usando las funciones correctas
+  const allMenuItems = getAllDailySpecials();
   const categories = getCategories();
 
   const getItemsToShow = () => {
     if (searchTerm) {
-      return getAllDailySpecials().filter((item: MenuItem) =>
+      return allMenuItems.filter((item: MenuItem) =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.category.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -222,7 +222,7 @@ const OrderReception: React.FC = () => {
       return;
     }
     
-    const updatedMenuItem = allMenuItems.find(item => item.id === itemId);
+    const updatedMenuItem = allMenuItems.find((item: MenuItem) => item.id === itemId);
     
     setCart(prev =>
       prev.map(item => {
@@ -1181,4 +1181,3 @@ const OrderReception: React.FC = () => {
 };
 
 export default OrderReception;
-
