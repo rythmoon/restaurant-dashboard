@@ -7,7 +7,7 @@ interface OrderTicketProps {
 }
 
 const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
-  // Estilos para el PDF - unificados con el diseño del ticket de impresión
+  // Estilos para el PDF - tamaño real para impresión térmica (80mm)
   const styles = StyleSheet.create({
     page: {
       fontFamily: 'Courier',
@@ -20,7 +20,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     },
     ticket: {
       width: '100%',
-      maxWidth: '72mm',
+      maxWidth: '72mm', // 80mm menos padding
     },
     center: {
       textAlign: 'center',
@@ -99,11 +99,11 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   });
 
-  // Componente del documento PDF con tamaño de página para ticket
+  // Componente del documento PDF - tamaño real para impresión (80mm)
   const TicketDocument = () => (
     <Document>
       <Page 
-        size={[203, 841.89]}
+        size={[226.77, 841.89]} // 80mm de ancho para impresora térmica
         style={styles.page}
         orientation="portrait"
       >
@@ -241,14 +241,14 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
-  // Función para imprimir
+  // Función para imprimir - CON VISTA PREVIA EN 98x148mm
   const handlePrint = async () => {
     const printContent = document.getElementById(`ticket-${order.id}`);
     if (printContent) {
       const isMobile = window.innerWidth <= 768;
       const windowFeatures = isMobile 
-        ? 'width=320,height=600,scrollbars=no,toolbar=no,location=no'
-        : 'width=800,height=600,scrollbars=no,toolbar=no,location=no';
+        ? 'width=400,height=700,scrollbars=no,toolbar=no,location=no'
+        : 'width=500,height=800,scrollbars=no,toolbar=no,location=no';
       
       const printWindow = window.open('', '_blank', windowFeatures);
       if (printWindow) {
@@ -259,26 +259,45 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             <head>
               <title>Ticket ${order.id}</title>
               <style>
+                /* VISTA PREVIA - 98x148mm para pantalla */
+                @media screen {
+                  body {
+                    font-family: 'Courier New', monospace;
+                    font-size: 14px; /* Un poco más grande para vista previa */
+                    line-height: 1.3;
+                    width: 98mm;
+                    height: 148mm;
+                    margin: 10px auto;
+                    padding: 15px;
+                    background: white;
+                    color: black;
+                    box-sizing: border-box;
+                    border: 1px solid #ccc;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                  }
+                }
+
+                /* IMPRESIÓN - 80mm para impresora térmica */
                 @media print {
                   @page {
                     margin: 0;
-                    size: 80mm auto;
+                    size: 80mm auto; /* Tamaño real para impresión */
+                  }
+                  body {
+                    font-family: 'Courier New', monospace;
+                    font-size: 12px; /* Tamaño original para impresión */
+                    line-height: 1.2;
+                    width: 80mm;
+                    margin: 0 auto;
+                    padding: 10px;
+                    background: white;
+                    color: black;
+                    box-sizing: border-box;
                   }
                 }
-                body {
-                  font-family: 'Courier New', monospace;
-                  font-size: 12px;
-                  line-height: 1.2;
-                  width: 80mm;
-                  margin: 0 auto;
-                  padding: 10px;
-                  background: white;
-                  color: black;
-                  box-sizing: border-box;
-                }
+
                 .ticket {
                   width: 100%;
-                  max-width: 80mm;
                   margin: 0 auto;
                 }
                 .center {
@@ -338,10 +357,9 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
                   font-size: 11px;
                 }
                 
+                /* Estilos para vista previa en escritorio */
                 @media screen and (min-width: 769px) {
                   body {
-                    width: 100%;
-                    max-width: 400px;
                     background: #f5f5f5;
                     display: flex;
                     justify-content: center;
@@ -356,11 +374,13 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
                   }
                 }
                 
+                /* Estilos para vista previa en móvil */
                 @media screen and (max-width: 768px) {
                   body {
-                    width: 100%;
-                    max-width: 300px;
-                    margin: 0 auto;
+                    width: 98mm;
+                    height: auto;
+                    min-height: 148mm;
+                    margin: 5px auto;
                   }
                 }
               </style>
