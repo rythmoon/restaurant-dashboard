@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Minus, X, ShoppingBag, ArrowRight, Search, Trash2, User } from 'lucide-react';
-import { MenuItem, OrderItem, OrderSource, Order } from '../../types';
+import { MenuItem, OrderItem, Order } from '../../types'; // ELIMINADO OrderSource
 import OrderTicket from './OrderTicket';
 import { useMenu } from '../../hooks/useMenu';
 import { useCustomers } from '../../hooks/useCustomers';
@@ -55,7 +55,7 @@ const OrderReception: React.FC = () => {
   const [orderNotes, setOrderNotes] = useState('');
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  // ELIMINADO: showConfirmation y setShowConfirmation
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('Entradas');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
