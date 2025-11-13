@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Clock, AlertCircle, ChefHat } from 'lucide-react';
 import { Order } from '../../types';
+import { useOrders } from '../../hooks/useOrders';
 
-// Componente Toast igual al de Recepción
+// Componente Toast
 const ToastNotification: React.FC<{
   message: string;
   type: 'success' | 'error';
@@ -14,7 +15,7 @@ const ToastNotification: React.FC<{
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onClose, 300);
-    }, 4000); // 4 segundos para notificaciones de cocina
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, [onClose]);
@@ -33,67 +34,39 @@ const ToastNotification: React.FC<{
 };
 
 const KitchenManager: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<'pending' | 'preparing' | 'ready'>('pending');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [processedOrders, setProcessedOrders] = useState<Set<string>>(new Set());
+  const [lastOrderCount, setLastOrderCount] = useState(0);
 
-  // Cargar órdenes desde localStorage
+  const { orders, updateOrderStatus, fetchOrders } = useOrders();
+
+  // Configurar polling para nuevas órdenes
   useEffect(() => {
-    const savedOrders = localStorage.getItem('restaurant-orders');
-    if (savedOrders) {
-      const parsedOrders = JSON.parse(savedOrders).map((order: any) => ({
-        ...order,
-        createdAt: new Date(order.createdAt)
-      }));
-      setOrders(parsedOrders);
-      
-      // ✅ SOLUCIÓN DEFINITIVA: Crear Set de strings manualmente
-      const orderIds: string[] = parsedOrders.map((order: any) => order.id);
-      const existingOrderIds = new Set<string>(orderIds);
-      setProcessedOrders(existingOrderIds);
-    }
-
-    // Configurar polling para nuevas órdenes (cada 5 segundos)
-    const interval = setInterval(checkForNewOrders, 5000);
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 5000);
     
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [fetchOrders]);
 
-  // Verificar nuevas órdenes - SOLO para pedidos NUEVOS
-  const checkForNewOrders = () => {
-    const savedOrders = localStorage.getItem('restaurant-orders');
-    if (savedOrders) {
-      const parsedOrders = JSON.parse(savedOrders);
-      const currentOrders = parsedOrders.map((order: any) => ({
-        ...order,
-        createdAt: new Date(order.createdAt)
-      }));
-
-      // Encontrar órdenes realmente NUEVAS (que no hemos procesado)
-      const newOrders = currentOrders.filter((order: Order) => 
-        !processedOrders.has(order.id) && order.status === 'pending'
-      );
-
-      // Mostrar notificación solo para órdenes nuevas pendientes
-      newOrders.forEach((order: Order) => {
+  // Detectar nuevas órdenes
+  useEffect(() => {
+    const pendingOrders = orders.filter(order => order.status === 'pending');
+    
+    if (pendingOrders.length > lastOrderCount) {
+      // Hay nuevas órdenes
+      const newOrders = pendingOrders.slice(lastOrderCount);
+      newOrders.forEach(order => {
         showNewOrderNotification(order);
-        // Marcar como procesada inmediatamente
-        setProcessedOrders(prev => {
-          const newSet = new Set(prev);
-          newSet.add(order.id);
-          return newSet;
-        });
       });
-
-      // Actualizar estado de órdenes
-      setOrders(currentOrders);
     }
-  };
+    
+    setLastOrderCount(pendingOrders.length);
+  }, [orders]);
 
-  // Mostrar notificación de nueva orden - SOLO UNA por pedido
+  // Mostrar notificación de nueva orden
   const showNewOrderNotification = (order: Order) => {
     const message = `📱 Nuevo pedido #${formatOrderId(order.id)} - ${order.customerName} (${getSourceText(order.source.type)})`;
     setToast({ message, type: 'success' });
@@ -127,15 +100,9 @@ const KitchenManager: React.FC = () => {
   };
 
   // Actualizar estado de la orden
-  const updateOrderStatus = (orderId: string, newStatus: Order['status']) => {
-    const updatedOrders = orders.map(order =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
-    setOrders(updatedOrders);
-    localStorage.setItem('restaurant-orders', JSON.stringify(updatedOrders));
-
-    // Mostrar confirmación cuando se marca como listo
-    if (newStatus === 'ready') {
+  const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
+    const result = await updateOrderStatus(orderId, newStatus);
+    if (result.success && newStatus === 'ready') {
       const order = orders.find(o => o.id === orderId);
       if (order) {
         setToast({ 
@@ -363,7 +330,7 @@ const KitchenManager: React.FC = () => {
                       <div className="flex space-x-2">
                         {order.status === 'pending' && (
                           <button
-                            onClick={() => updateOrderStatus(order.id, 'preparing')}
+                            onClick={() => handleStatusUpdate(order.id, 'preparing')}
                             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
                           >
                             <ChefHat size={16} />
@@ -373,7 +340,7 @@ const KitchenManager: React.FC = () => {
                         
                         {order.status === 'preparing' && (
                           <button
-                            onClick={() => updateOrderStatus(order.id, 'ready')}
+                            onClick={() => handleStatusUpdate(order.id, 'ready')}
                             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
                           >
                             <CheckCircle size={16} />
@@ -383,7 +350,7 @@ const KitchenManager: React.FC = () => {
                         
                         {order.status === 'ready' && (
                           <button
-                            onClick={() => updateOrderStatus(order.id, 'delivered')}
+                            onClick={() => handleStatusUpdate(order.id, 'delivered')}
                             className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors flex items-center space-x-2"
                           >
                             <CheckCircle size={16} />
@@ -395,7 +362,7 @@ const KitchenManager: React.FC = () => {
                           <button
                             onClick={() => {
                               const prevStatus = order.status === 'preparing' ? 'pending' : 'preparing';
-                              updateOrderStatus(order.id, prevStatus);
+                              handleStatusUpdate(order.id, prevStatus);
                             }}
                             className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
                           >
@@ -447,11 +414,7 @@ const KitchenManager: React.FC = () => {
 
 // Funciones auxiliares
 const formatOrderId = (orderId: string) => {
-  const numericId = parseInt(orderId.replace(/\D/g, ''));
-  if (!isNaN(numericId)) {
-    return String(numericId).padStart(8, '0');
-  }
-  return orderId;
+  return `ORD-${orderId.slice(-8).toUpperCase()}`;
 };
 
 const getSourceText = (sourceType: 'phone' | 'walk-in' | 'delivery') => {
