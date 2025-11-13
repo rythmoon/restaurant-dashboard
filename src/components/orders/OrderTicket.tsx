@@ -316,7 +316,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       const isMobile = window.innerWidth <= 768;
       const windowFeatures = isMobile 
         ? 'width=400,height=700,scrollbars=yes,toolbar=no,location=no'
-        : 'width=800,height=900,scrollbars=yes,toolbar=no,location=no';
+        : 'width=600,height=700,scrollbars=yes,toolbar=no,location=no';
       
       const printWindow = window.open('', '_blank', windowFeatures);
       if (printWindow) {
@@ -373,7 +373,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           box-shadow: 0 6px 20px rgba(0,0,0,0.15);
           border-radius: 15px;
           border: 2px solid #e0e0e0;
-          max-width: 600px;
+          max-width: 400px;
           width: 100%;
           margin-bottom: 20px;
         }
