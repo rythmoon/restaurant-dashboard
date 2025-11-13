@@ -20,7 +20,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     },
     ticket: {
       width: '100%',
-      maxWidth: '72mm', // 80mm menos padding
+      maxWidth: '72mm',
     },
     center: {
       textAlign: 'center',
@@ -241,7 +241,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
-  // Función para imprimir - CON VISTA PREVIA EN 98x148mm
+  // Función para imprimir - CON VISTA PREVIA MEJORADA
   const handlePrint = async () => {
     const printContent = document.getElementById(`ticket-${order.id}`);
     if (printContent) {
@@ -259,142 +259,192 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             <head>
               <title>Ticket ${order.id}</title>
               <style>
-                /* VISTA PREVIA - 98x148mm para pantalla */
-                @media screen {
-                  body {
-                    font-family: 'Courier New', monospace;
-                    font-size: 14px; /* Un poco más grande para vista previa */
-                    line-height: 1.3;
-                    width: 98mm;
-                    height: 148mm;
-                    margin: 10px auto;
-                    padding: 15px;
-                    background: white;
-                    color: black;
-                    box-sizing: border-box;
-                    border: 1px solid #ccc;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                  }
+                /* RESET Y BASE */
+                * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+                }
+                
+                body {
+                  background: #f0f0f0;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  min-height: 100vh;
+                  font-family: 'Courier New', monospace;
+                  padding: 20px;
                 }
 
-                /* IMPRESIÓN - 80mm para impresora térmica */
-                @media print {
-                  @page {
-                    margin: 0;
-                    size: 80mm auto; /* Tamaño real para impresión */
-                  }
-                  body {
-                    font-family: 'Courier New', monospace;
-                    font-size: 12px; /* Tamaño original para impresión */
-                    line-height: 1.2;
-                    width: 80mm;
-                    margin: 0 auto;
-                    padding: 10px;
-                    background: white;
-                    color: black;
-                    box-sizing: border-box;
-                  }
+                /* CONTENEDOR PRINCIPAL - VISTA PREVIA 98x148mm */
+                .preview-container {
+                  width: 98mm;
+                  min-height: 148mm;
+                  background: white;
+                  border: 1px solid #ccc;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                  border-radius: 8px;
+                  overflow: hidden;
+                  display: flex;
+                  flex-direction: column;
                 }
 
+                /* TICKET DENTRO DEL CONTENEDOR - ESCALADO PARA LLENAR EL ESPACIO */
                 .ticket {
+                  flex: 1;
+                  padding: 15px;
+                  font-size: 14px; /* Texto más grande para vista previa */
+                  line-height: 1.3;
+                  transform: scale(1.1); /* Escalado para llenar mejor el espacio */
+                  transform-origin: top center;
                   width: 100%;
-                  margin: 0 auto;
                 }
+
+                /* ESTILOS DEL TICKET */
                 .center {
                   text-align: center;
+                  margin-bottom: 8px;
                 }
                 .bold {
                   font-weight: bold;
                 }
                 .divider {
                   border-top: 1px dashed #000;
-                  margin: 5px 0;
+                  margin: 8px 0;
                 }
                 .item-row {
                   display: flex;
                   justify-content: space-between;
-                  margin-bottom: 3px;
+                  margin-bottom: 4px;
                 }
                 .notes {
                   font-style: italic;
-                  font-size: 10px;
+                  font-size: 11px;
                   margin-left: 10px;
+                  color: #666;
                 }
                 .order-notes-list {
-                  margin: 5px 0;
+                  margin: 8px 0;
                   padding-left: 15px;
                 }
                 .order-notes-list div {
-                  margin-bottom: 2px;
+                  margin-bottom: 3px;
+                  font-size: 12px;
                 }
                 table {
                   width: 100%;
                   border-collapse: collapse;
+                  margin: 8px 0;
                 }
                 th, td {
-                  padding: 2px 0;
+                  padding: 3px 0;
                   text-align: left;
+                  border-bottom: 1px solid #eee;
                 }
                 th {
                   border-bottom: 1px solid #000;
+                  font-weight: bold;
                 }
                 .total {
                   border-top: 2px solid #000;
-                  padding-top: 5px;
-                  margin-top: 5px;
+                  padding-top: 8px;
+                  margin-top: 8px;
                 }
                 .product-name {
                   font-weight: bold;
                   text-transform: uppercase;
+                  font-size: 13px;
                 }
                 .quantity {
                   font-weight: bold;
+                  font-size: 13px;
                 }
                 .calculation-row {
                   display: flex;
                   justify-content: space-between;
-                  margin-bottom: 2px;
-                  font-size: 11px;
+                  margin-bottom: 3px;
+                  font-size: 12px;
                 }
-                
-                /* Estilos para vista previa en escritorio */
-                @media screen and (min-width: 769px) {
+                .footer {
+                  text-align: center;
+                  margin-top: 12px;
+                  padding-top: 8px;
+                  border-top: 1px dashed #ccc;
+                }
+
+                /* ESTILOS PARA IMPRESIÓN - 80mm REAL */
+                @media print {
                   body {
-                    background: #f5f5f5;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
+                    background: white !important;
+                    padding: 0 !important;
+                    display: block !important;
+                  }
+                  .preview-container {
+                    width: 80mm !important;
+                    min-height: auto !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    border-radius: 0 !important;
                   }
                   .ticket {
-                    background: white;
-                    padding: 20px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    border-radius: 8px;
+                    transform: none !important;
+                    font-size: 12px !important;
+                    padding: 10px !important;
+                    line-height: 1.2 !important;
+                  }
+                  .divider {
+                    margin: 5px 0 !important;
+                  }
+                  .item-row {
+                    margin-bottom: 3px !important;
+                  }
+                  .product-name {
+                    font-size: 11px !important;
+                  }
+                  .quantity {
+                    font-size: 11px !important;
+                  }
+                  .notes {
+                    font-size: 9px !important;
+                  }
+                  @page {
+                    margin: 0;
+                    size: 80mm auto;
                   }
                 }
-                
-                /* Estilos para vista previa en móvil */
+
+                /* RESPONSIVE PARA MÓVIL */
                 @media screen and (max-width: 768px) {
                   body {
-                    width: 98mm;
-                    height: auto;
-                    min-height: 148mm;
-                    margin: 5px auto;
+                    padding: 10px;
+                  }
+                  .preview-container {
+                    width: 95vw;
+                    min-height: 140mm;
+                  }
+                  .ticket {
+                    transform: scale(1);
+                    font-size: 13px;
                   }
                 }
               </style>
             </head>
             <body>
-              ${ticketContent}
+              <div class="preview-container">
+                ${ticketContent}
+              </div>
               <script>
                 window.onload = function() {
+                  // Mostrar mensaje de ayuda
+                  console.log('Vista previa - Tamaño: 98x148mm');
+                  console.log('Al imprimir se ajustará a 80mm para impresora térmica');
+                  
                   setTimeout(function() {
                     window.print();
                     setTimeout(function() {
                       window.close();
                     }, 1000);
-                  }, 100);
+                  }, 500);
                 };
               </script>
             </body>
@@ -405,7 +455,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
-  // Función para generar contenido del ticket HTML
+  // Función para generar contenido del ticket HTML - ACTUALIZADA
   const generateTicketContent = (order: Order) => {
     const sourceText = getSourceText(order.source.type);
     
@@ -433,7 +483,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return `
       <div class="ticket">
         <div class="center">
-          <div class="bold">MARY'S RESTAURANT</div>
+          <div class="bold" style="font-size: 16px;">MARY'S RESTAURANT</div>
           <div>Av. Isabel La Católica 1254</div>
           <div>Tel: 941 778 599</div>
           <div class="divider"></div>
@@ -518,10 +568,10 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         </div>
         
         <div class="divider"></div>
-        <div class="center">
+        <div class="footer">
           <div class="bold">¡GRACIAS POR SU PEDIDO!</div>
           <div>*** ${sourceText} ***</div>
-          <div style="margin-top: 10px; font-size: 10px;">
+          <div style="margin-top: 8px; font-size: 10px; color: #666;">
             ${new Date().toLocaleString()}
           </div>
         </div>
