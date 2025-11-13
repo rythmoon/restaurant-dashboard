@@ -38,10 +38,18 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       justifyContent: 'space-between',
       marginBottom: 3,
     },
+    itemRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 3,
+    },
     bold: {
       fontWeight: 'bold',
     },
     section: {
+      marginBottom: 10,
+    },
+    table: {
       marginBottom: 10,
     },
     tableHeader: {
@@ -64,6 +72,13 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       width: '30%',
       textAlign: 'right',
     },
+    quantity: {
+      fontWeight: 'bold',
+    },
+    productName: {
+      fontWeight: 'bold',
+      textTransform: 'uppercase',
+    },
     notes: {
       fontStyle: 'italic',
       fontSize: 8,
@@ -73,10 +88,22 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       marginTop: 5,
       marginBottom: 10,
     },
+    orderNotesList: {
+      marginTop: 3,
+    },
     orderNoteItem: {
       marginBottom: 2,
     },
-    totalSection: {
+    calculations: {
+      marginTop: 5,
+    },
+    calculationRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 2,
+      fontSize: 9,
+    },
+    total: {
       borderTop: '2pt solid #000000',
       paddingTop: 5,
       marginTop: 5,
@@ -85,15 +112,13 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       textAlign: 'center',
       marginTop: 15,
     },
-    calculationRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 2,
-      fontSize: 9,
+    footerDate: {
+      marginTop: 10,
+      fontSize: 8,
     }
   });
 
-  // Componente del documento PDF
+  // Componente del documento PDF - Actualizado para coincidir con HTML
   const TicketDocument = () => (
     <Document>
       <Page size={[226.77, 841.89]} style={styles.page}>
@@ -104,20 +129,21 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           <View style={styles.divider} />
         </View>
 
+        {/* Información de la orden - Estilo similar al HTML */}
         <View style={styles.section}>
-          <View style={styles.row}>
+          <View style={styles.itemRow}>
             <Text style={styles.bold}>ORDEN:</Text>
             <Text>{formatOrderId(order.id)}</Text>
           </View>
-          <View style={styles.row}>
+          <View style={styles.itemRow}>
             <Text style={styles.bold}>TIPO:</Text>
             <Text>{getSourceText(order.source.type)}</Text>
           </View>
-          <View style={styles.row}>
+          <View style={styles.itemRow}>
             <Text style={styles.bold}>FECHA:</Text>
             <Text>{order.createdAt.toLocaleDateString()}</Text>
           </View>
-          <View style={styles.row}>
+          <View style={styles.itemRow}>
             <Text style={styles.bold}>HORA:</Text>
             <Text>{order.createdAt.toLocaleTimeString()}</Text>
           </View>
@@ -125,23 +151,24 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
 
         <View style={styles.divider} />
 
+        {/* Información del cliente - Actualizado con mayúsculas */}
         <View style={styles.section}>
-          <View style={styles.row}>
-            <Text style={styles.bold}>CLIENTE:</Text>
-            <Text style={styles.bold}>{order.customerName}</Text>
+          <View style={[styles.itemRow, styles.bold]}>
+            <Text>CLIENTE:</Text>
+            <Text>{order.customerName.toUpperCase()}</Text>
           </View>
-          <View style={styles.row}>
+          <View style={styles.itemRow}>
             <Text>TELÉFONO:</Text>
             <Text>{order.phone}</Text>
           </View>
           {order.tableNumber && (
-            <View style={styles.row}>
+            <View style={styles.itemRow}>
               <Text>MESA:</Text>
               <Text>{order.tableNumber}</Text>
             </View>
           )}
           {order.address && (
-            <View style={styles.row}>
+            <View style={styles.itemRow}>
               <Text>DIRECCIÓN:</Text>
               <Text>{order.address}</Text>
             </View>
@@ -150,27 +177,29 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
 
         <View style={styles.divider} />
 
-        {/* Tabla de productos */}
-        <View style={styles.tableHeader}>
-          <Text style={styles.colQuantity}>Cant</Text>
-          <Text style={styles.colDescription}>Descripción</Text>
-          <Text style={styles.colPrice}>Precio</Text>
-        </View>
-
-        {order.items.map((item, index) => (
-          <View key={index} style={styles.tableRow}>
-            <Text style={styles.colQuantity}>{item.quantity}x</Text>
-            <View style={styles.colDescription}>
-              <Text style={styles.bold}>{item.menuItem.name}</Text>
-              {item.notes && (
-                <Text style={styles.notes}>Nota: {item.notes}</Text>
-              )}
-            </View>
-            <Text style={styles.colPrice}>
-              S/ {(item.menuItem.price * item.quantity).toFixed(2)}
-            </Text>
+        {/* Tabla de productos - Mejorada */}
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <Text style={styles.colQuantity}>Cant</Text>
+            <Text style={styles.colDescription}>Descripción</Text>
+            <Text style={styles.colPrice}>Precio</Text>
           </View>
-        ))}
+
+          {order.items.map((item, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={[styles.colQuantity, styles.quantity]}>{item.quantity}x</Text>
+              <View style={styles.colDescription}>
+                <Text style={styles.productName}>{item.menuItem.name}</Text>
+                {item.notes && (
+                  <Text style={styles.notes}>Nota: {item.notes}</Text>
+                )}
+              </View>
+              <Text style={styles.colPrice}>
+                S/ {(item.menuItem.price * item.quantity).toFixed(2)}
+              </Text>
+            </View>
+          ))}
+        </View>
 
         {/* Notas del pedido */}
         {order.notes && (
@@ -178,17 +207,19 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             <View style={styles.divider} />
             <View style={styles.orderNotes}>
               <Text style={styles.bold}>NOTAS DEL PEDIDO:</Text>
-              {formatOrderNotes(order.notes).map((note, index) => (
-                <Text key={index} style={styles.orderNoteItem}>• {note}</Text>
-              ))}
+              <View style={styles.orderNotesList}>
+                {formatOrderNotes(order.notes).map((note, index) => (
+                  <Text key={index} style={styles.orderNoteItem}>• {note}</Text>
+                ))}
+              </View>
             </View>
           </>
         )}
 
         <View style={styles.divider} />
 
-        {/* Cálculos con IGV */}
-        <View style={styles.totalSection}>
+        {/* Cálculos con IGV - Mejorado */}
+        <View style={styles.calculations}>
           <View style={styles.calculationRow}>
             <Text>Subtotal:</Text>
             <Text>S/ {(order.total / 1.18).toFixed(2)}</Text>
@@ -197,7 +228,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             <Text>IGV (18%):</Text>
             <Text>S/ {(order.total - (order.total / 1.18)).toFixed(2)}</Text>
           </View>
-          <View style={[styles.row, styles.bold]}>
+          <View style={[styles.itemRow, styles.total, styles.bold]}>
             <Text>TOTAL:</Text>
             <Text>S/ {order.total.toFixed(2)}</Text>
           </View>
@@ -208,7 +239,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         <View style={styles.footer}>
           <Text style={styles.bold}>¡GRACIAS POR SU PEDIDO!</Text>
           <Text>*** {getSourceText(order.source.type)} ***</Text>
-          <Text style={{ marginTop: 10, fontSize: 8 }}>
+          <Text style={styles.footerDate}>
             {new Date().toLocaleString()}
           </Text>
         </View>
@@ -466,9 +497,10 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         
         <div class="divider"></div>
         
+        <!-- MODIFICACIÓN AQUÍ: Nombre del cliente en mayúsculas y negrita -->
         <div class="item-row bold">
           <span>CLIENTE:</span>
-          <span>${order.customerName}</span>
+          <span>${order.customerName.toUpperCase()}</span>
         </div>
         <div class="item-row">
           <span>TELÉFONO:</span>
