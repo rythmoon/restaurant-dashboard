@@ -13,8 +13,8 @@ const OrdersManager: React.FC = () => {
     orders, 
     loading, 
     updateOrderStatus, 
-    deleteOrder,
-    fetchOrders 
+    deleteOrder
+    // ELIMINADO: fetchOrders ya que no se usa
   } = useOrders();
 
   // Filtrar órdenes por búsqueda Y por estado
