@@ -6,6 +6,13 @@ interface OrderTicketProps {
   order: Order;
 }
 
+// Constantes para información del restaurante
+const RESTAURANT_INFO = {
+  name: "MARY'S RESTAURANT", // Cambiar según necesidad
+  address: "Av Isabel La Católica 1254", // Cambiar según necesidad
+  phone: "+51 941 778 599" // Cambiar según necesidad
+};
+
 const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   // Estilos para el PDF
   const styles = StyleSheet.create({
@@ -93,128 +100,177 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   });
 
+  // Función para formatear el ID de la orden de manera segura
+  const formatOrderId = (orderId: string): string => {
+    try {
+      // Extraer números del orderId
+      const numericId = parseInt(orderId.replace(/\D/g, ''));
+      if (!isNaN(numericId)) {
+        return `ORD-${String(numericId).padStart(8, '0')}`;
+      }
+      return orderId;
+    } catch (error) {
+      console.error('Error formateando orderId:', error);
+      return orderId;
+    }
+  };
+
+  // Función para formatear notas del pedido
+  const formatOrderNotes = (notes: string | null | undefined): string[] => {
+    if (!notes) return [];
+    
+    return notes.split(/[.,\n]/)
+      .map(note => note.trim())
+      .filter(note => note.length > 0);
+  };
+
+  // Función para calcular subtotal e IGV de manera precisa
+  const calculateTaxes = (total: number) => {
+    const subtotal = total / 1.18;
+    const igv = total - subtotal;
+    
+    return {
+      subtotal: Number(subtotal.toFixed(2)),
+      igv: Number(igv.toFixed(2))
+    };
+  };
+
+  const getSourceText = (sourceType: Order['source']['type']): string => {
+    const sourceMap = {
+      'phone': 'POR TELÉFONO',
+      'walk-in': 'RECOGE EN TIENDA', 
+      'delivery': 'DELIVERY',
+      'reservation': 'RESERVA'
+    };
+    return sourceMap[sourceType] || sourceType;
+  };
+
   // Componente del documento PDF
-  const TicketDocument = () => (
-    <Document>
-      <Page size={[226.77, 841.89]} style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.title}>SABORES & SAZÓN</Text>
-          <Text style={styles.subtitle}>Av. Principal 123 - Lima</Text>
-          <Text style={styles.subtitle}>Tel: +51 123 456 789</Text>
+  const TicketDocument = () => {
+    const { subtotal, igv } = calculateTaxes(order.total);
+    
+    return (
+      <Document>
+        <Page size={[226.77, 841.89]} style={styles.page}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{RESTAURANT_INFO.name}</Text>
+            <Text style={styles.subtitle}>{RESTAURANT_INFO.address}</Text>
+            <Text style={styles.subtitle}>Tel: {RESTAURANT_INFO.phone}</Text>
+            <View style={styles.divider} />
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <Text style={styles.bold}>ORDEN:</Text>
+              <Text>{formatOrderId(order.id)}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.bold}>TIPO:</Text>
+              <Text>{getSourceText(order.source.type)}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.bold}>FECHA:</Text>
+              <Text>{order.createdAt.toLocaleDateString()}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.bold}>HORA:</Text>
+              <Text>{order.createdAt.toLocaleTimeString()}</Text>
+            </View>
+          </View>
+
           <View style={styles.divider} />
-        </View>
 
-        <View style={styles.section}>
-          <View style={styles.row}>
-            <Text style={styles.bold}>ORDEN:</Text>
-            <Text>{formatOrderId(order.id)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.bold}>TIPO:</Text>
-            <Text>{getSourceText(order.source.type)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.bold}>FECHA:</Text>
-            <Text>{order.createdAt.toLocaleDateString()}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.bold}>HORA:</Text>
-            <Text>{order.createdAt.toLocaleTimeString()}</Text>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.section}>
-          <View style={styles.row}>
-            <Text style={styles.bold}>CLIENTE:</Text>
-            <Text style={styles.bold}>{order.customerName}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text>TELÉFONO:</Text>
-            <Text>{order.phone}</Text>
-          </View>
-          {order.tableNumber && (
+          <View style={styles.section}>
             <View style={styles.row}>
-              <Text>MESA:</Text>
-              <Text>{order.tableNumber}</Text>
+              <Text style={styles.bold}>CLIENTE:</Text>
+              <Text style={styles.bold}>{order.customerName}</Text>
             </View>
-          )}
-          {order.address && (
             <View style={styles.row}>
-              <Text>DIRECCIÓN:</Text>
-              <Text>{order.address}</Text>
+              <Text>TELÉFONO:</Text>
+              <Text>{order.phone}</Text>
             </View>
+            {order.tableNumber && (
+              <View style={styles.row}>
+                <Text>MESA:</Text>
+                <Text>{order.tableNumber}</Text>
+              </View>
+            )}
+            {order.address && (
+              <View style={styles.row}>
+                <Text>DIRECCIÓN:</Text>
+                <Text>{order.address}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Tabla de productos */}
+          <View style={styles.tableHeader}>
+            <Text style={styles.colQuantity}>Cant</Text>
+            <Text style={styles.colDescription}>Descripción</Text>
+            <Text style={styles.colPrice}>Precio</Text>
+          </View>
+
+          {order.items.map((item, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={styles.colQuantity}>{item.quantity}x</Text>
+              <View style={styles.colDescription}>
+                <Text style={styles.bold}>{item.menuItem.name}</Text>
+                {item.notes && (
+                  <Text style={styles.notes}>Nota: {item.notes}</Text>
+                )}
+              </View>
+              <Text style={styles.colPrice}>
+                S/ {(item.menuItem.price * item.quantity).toFixed(2)}
+              </Text>
+            </View>
+          ))}
+
+          {/* Notas del pedido */}
+          {order.notes && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.orderNotes}>
+                <Text style={styles.bold}>NOTAS DEL PEDIDO:</Text>
+                {formatOrderNotes(order.notes).map((note, index) => (
+                  <Text key={index} style={styles.orderNoteItem}>• {note}</Text>
+                ))}
+              </View>
+            </>
           )}
-        </View>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        {/* Tabla de productos */}
-        <View style={styles.tableHeader}>
-          <Text style={styles.colQuantity}>Cant</Text>
-          <Text style={styles.colDescription}>Descripción</Text>
-          <Text style={styles.colPrice}>Precio</Text>
-        </View>
-
-        {order.items.map((item, index) => (
-          <View key={index} style={styles.tableRow}>
-            <Text style={styles.colQuantity}>{item.quantity}x</Text>
-            <View style={styles.colDescription}>
-              <Text style={styles.bold}>{item.menuItem.name}</Text>
-              {item.notes && (
-                <Text style={styles.notes}>Nota: {item.notes}</Text>
-              )}
+          {/* Cálculos con IGV */}
+          <View style={styles.totalSection}>
+            <View style={styles.calculationRow}>
+              <Text>Subtotal:</Text>
+              <Text>S/ {subtotal.toFixed(2)}</Text>
             </View>
-            <Text style={styles.colPrice}>
-              S/ {(item.menuItem.price * item.quantity).toFixed(2)}
+            <View style={styles.calculationRow}>
+              <Text>IGV (18%):</Text>
+              <Text>S/ {igv.toFixed(2)}</Text>
+            </View>
+            <View style={[styles.row, styles.bold]}>
+              <Text>TOTAL:</Text>
+              <Text>S/ {order.total.toFixed(2)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.footer}>
+            <Text style={styles.bold}>¡GRACIAS POR SU PEDIDO!</Text>
+            <Text>*** {getSourceText(order.source.type)} ***</Text>
+            <Text style={{ marginTop: 10, fontSize: 8 }}>
+              {new Date().toLocaleString()}
             </Text>
           </View>
-        ))}
-
-        {/* Notas del pedido */}
-        {order.notes && (
-          <>
-            <View style={styles.divider} />
-            <View style={styles.orderNotes}>
-              <Text style={styles.bold}>NOTAS DEL PEDIDO:</Text>
-              {formatOrderNotes(order.notes).map((note, index) => (
-                <Text key={index} style={styles.orderNoteItem}>• {note}</Text>
-              ))}
-            </View>
-          </>
-        )}
-
-        <View style={styles.divider} />
-
-        {/* Cálculos con IGV */}
-        <View style={styles.totalSection}>
-          <View style={styles.calculationRow}>
-            <Text>Subtotal:</Text>
-            <Text>S/ {(order.total / 1.18).toFixed(2)}</Text>
-          </View>
-          <View style={styles.calculationRow}>
-            <Text>IGV (18%):</Text>
-            <Text>S/ {(order.total - (order.total / 1.18)).toFixed(2)}</Text>
-          </View>
-          <View style={[styles.row, styles.bold]}>
-            <Text>TOTAL:</Text>
-            <Text>S/ {order.total.toFixed(2)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.footer}>
-          <Text style={styles.bold}>¡GRACIAS POR SU PEDIDO!</Text>
-          <Text>*** {getSourceText(order.source.type)} ***</Text>
-          <Text style={{ marginTop: 10, fontSize: 8 }}>
-            {new Date().toLocaleString()}
-          </Text>
-        </View>
-      </Page>
-    </Document>
-  );
+        </Page>
+      </Document>
+    );
+  };
 
   // Función para descargar PDF
   const handleDownloadPDF = async () => {
@@ -234,20 +290,23 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generando PDF:', error);
+      alert('Error al generar el PDF. Por favor, intente nuevamente.');
     }
   };
 
   // Generar nombre del archivo con formato: ORD-numero-de-orden-nombre-cliente-fecha.pdf
   const generateFileName = (order: Order) => {
     const orderNumber = formatOrderId(order.id)
-      .replace(/[^a-zA-Z0-9-]/g, '') // Solo mantener letras, números y guiones
+      .replace(/[^a-zA-Z0-9-]/g, '')
       .toLowerCase();
     
     const customerName = order.customerName
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-') // Reemplazar caracteres especiales con guiones
-      .replace(/-+/g, '-') // Reemplazar múltiples guiones consecutivos con uno solo
-      .replace(/^-|-$/g, ''); // Eliminar guiones al inicio y final
+      .normalize('NFD') // Normalizar para eliminar acentos
+      .replace(/[\u0300-\u036f]/g, '') // Eliminar diacríticos
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
     
     const date = order.createdAt.toISOString().split('T')[0];
     
@@ -255,178 +314,166 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   };
 
   const handlePrint = async () => {
-    const printContent = document.getElementById(`ticket-${order.id}`);
-    if (printContent) {
-      // Para escritorio usar tamaño mayor, para móvil más pequeño
-      const isMobile = window.innerWidth <= 768;
-      const windowFeatures = isMobile 
-        ? 'width=320,height=600,scrollbars=no,toolbar=no,location=no'
-        : 'width=800,height=600,scrollbars=no,toolbar=no,location=no';
-      
-      const printWindow = window.open('', '_blank', windowFeatures);
-      if (printWindow) {
-        const ticketContent = generateTicketContent(order);
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>Ticket ${order.id}</title>
-              <style>
-                @media print {
-                  @page {
-                    margin: 0;
-                    size: 80mm auto;
+    try {
+      const printContent = document.getElementById(`ticket-${order.id}`);
+      if (printContent) {
+        const isMobile = window.innerWidth <= 768;
+        const windowFeatures = isMobile 
+          ? 'width=320,height=600,scrollbars=no,toolbar=no,location=no'
+          : 'width=800,height=600,scrollbars=no,toolbar=no,location=no';
+        
+        const printWindow = window.open('', '_blank', windowFeatures);
+        if (printWindow) {
+          const ticketContent = generateTicketContent(order);
+          printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Ticket ${order.id}</title>
+                <style>
+                  @media print {
+                    @page {
+                      margin: 0;
+                      size: 80mm auto;
+                    }
                   }
-                }
-                body {
-                  font-family: 'Courier New', monospace;
-                  font-size: 12px;
-                  line-height: 1.2;
-                  width: 80mm;
-                  margin: 0 auto;
-                  padding: 10px;
-                  background: white;
-                  color: black;
-                  box-sizing: border-box;
-                }
-                .ticket {
-                  width: 100%;
-                  max-width: 80mm;
-                  margin: 0 auto;
-                }
-                .center {
-                  text-align: center;
-                }
-                .bold {
-                  font-weight: bold;
-                }
-                .divider {
-                  border-top: 1px dashed #000;
-                  margin: 5px 0;
-                }
-                .item-row {
-                  display: flex;
-                  justify-content: space-between;
-                  margin-bottom: 3px;
-                }
-                .notes {
-                  font-style: italic;
-                  font-size: 10px;
-                  margin-left: 10px;
-                }
-                .order-notes-list {
-                  margin: 5px 0;
-                  padding-left: 15px;
-                }
-                .order-notes-list div {
-                  margin-bottom: 2px;
-                }
-                table {
-                  width: 100%;
-                  border-collapse: collapse;
-                }
-                th, td {
-                  padding: 2px 0;
-                  text-align: left;
-                }
-                th {
-                  border-bottom: 1px solid #000;
-                }
-                .total {
-                  border-top: 2px solid #000;
-                  padding-top: 5px;
-                  margin-top: 5px;
-                }
-                .product-name {
-                  font-weight: bold;
-                  text-transform: uppercase;
-                }
-                .quantity {
-                  font-weight: bold;
-                }
-                .calculation-row {
-                  display: flex;
-                  justify-content: space-between;
-                  margin-bottom: 2px;
-                  font-size: 11px;
-                }
-                
-                /* Estilos para vista previa en escritorio */
-                @media screen and (min-width: 769px) {
                   body {
-                    width: 100%;
-                    max-width: 400px;
-                    background: #f5f5f5;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
+                    font-family: 'Courier New', monospace;
+                    font-size: 12px;
+                    line-height: 1.2;
+                    width: 80mm;
+                    margin: 0 auto;
+                    padding: 10px;
+                    background: white;
+                    color: black;
+                    box-sizing: border-box;
                   }
                   .ticket {
-                    background: white;
-                    padding: 20px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    border-radius: 8px;
-                  }
-                }
-                
-                /* Estilos para vista previa en móvil */
-                @media screen and (max-width: 768px) {
-                  body {
                     width: 100%;
-                    max-width: 300px;
+                    max-width: 80mm;
                     margin: 0 auto;
                   }
-                }
-              </style>
-            </head>
-            <body>
-              ${ticketContent}
-              <script>
-                // Esperar a que cargue el contenido antes de imprimir
-                window.onload = function() {
-                  setTimeout(function() {
-                    window.print();
+                  .center {
+                    text-align: center;
+                  }
+                  .bold {
+                    font-weight: bold;
+                  }
+                  .divider {
+                    border-top: 1px dashed #000;
+                    margin: 5px 0;
+                  }
+                  .item-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 3px;
+                  }
+                  .notes {
+                    font-style: italic;
+                    font-size: 10px;
+                    margin-left: 10px;
+                  }
+                  .order-notes-list {
+                    margin: 5px 0;
+                    padding-left: 15px;
+                  }
+                  .order-notes-list div {
+                    margin-bottom: 2px;
+                  }
+                  table {
+                    width: 100%;
+                    border-collapse: collapse;
+                  }
+                  th, td {
+                    padding: 2px 0;
+                    text-align: left;
+                  }
+                  th {
+                    border-bottom: 1px solid #000;
+                  }
+                  .total {
+                    border-top: 2px solid #000;
+                    padding-top: 5px;
+                    margin-top: 5px;
+                  }
+                  .product-name {
+                    font-weight: bold;
+                    text-transform: uppercase;
+                  }
+                  .quantity {
+                    font-weight: bold;
+                  }
+                  .calculation-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 2px;
+                    font-size: 11px;
+                  }
+                  
+                  /* Estilos para vista previa en escritorio */
+                  @media screen and (min-width: 769px) {
+                    body {
+                      width: 100%;
+                      max-width: 400px;
+                      background: #f5f5f5;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      min-height: 100vh;
+                    }
+                    .ticket {
+                      background: white;
+                      padding: 20px;
+                      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                      border-radius: 8px;
+                    }
+                  }
+                  
+                  /* Estilos para vista previa en móvil */
+                  @media screen and (max-width: 768px) {
+                    body {
+                      width: 100%;
+                      max-width: 300px;
+                      margin: 0 auto;
+                    }
+                  }
+                </style>
+              </head>
+              <body>
+                ${ticketContent}
+                <script>
+                  window.onload = function() {
                     setTimeout(function() {
-                      window.close();
-                    }, 1000);
-                  }, 100);
-                };
-              </script>
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
+                      window.print();
+                      setTimeout(function() {
+                        window.close();
+                      }, 1000);
+                    }, 100);
+                  };
+                </script>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+        } else {
+          alert('No se pudo abrir la ventana de impresión. Por favor, desbloquee los popups.');
+        }
       }
+    } catch (error) {
+      console.error('Error al imprimir:', error);
+      alert('Error al imprimir. Por favor, intente nuevamente.');
     }
-  };
-
-  const getSourceText = (sourceType: Order['source']['type']) => {
-    const sourceMap = {
-      'phone': 'POR TELÉFONO',
-      'walk-in': 'RECOGE EN TIENDA', 
-      'delivery': 'DELIVERY',
-      'reservation': 'RESERVA'
-    };
-    return sourceMap[sourceType] || sourceType;
   };
 
   const generateTicketContent = (order: Order) => {
     const sourceText = getSourceText(order.source.type);
-    
-    // Cálculos del IGV
-    const subtotal = order.total / 1.18;
-    const igv = order.total - subtotal;
+    const { subtotal, igv } = calculateTaxes(order.total);
 
     // Procesar notas del pedido para convertirlas en lista
-    const formatOrderNotes = (notes: string) => {
+    const formatOrderNotesHTML = (notes: string | null | undefined) => {
       if (!notes) return '';
       
-      // Dividir por puntos, comas o saltos de línea
-      const notesArray = notes.split(/[.,\n]/)
-        .map(note => note.trim())
-        .filter(note => note.length > 0);
-      
+      const notesArray = formatOrderNotes(notes);
       if (notesArray.length === 0) return '';
       
       return `
@@ -441,9 +488,9 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return `
       <div class="ticket">
         <div class="center">
-          <div class="bold">SABORES & SAZÓN</div>
-          <div>Av. Principal 123 - Lima</div>
-          <div>Tel: +51 123 456 789</div>
+          <div class="bold">${RESTAURANT_INFO.name}</div>
+          <div>${RESTAURANT_INFO.address}</div>
+          <div>Tel: ${RESTAURANT_INFO.phone}</div>
           <div class="divider"></div>
         </div>
         
@@ -507,7 +554,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           </tbody>
         </table>
         
-        ${formatOrderNotes(order.notes || '')}
+        ${formatOrderNotesHTML(order.notes)}
         
         <div class="divider"></div>
         
@@ -536,23 +583,6 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         </div>
       </div>
     `;
-  };
-
-  // Función para formatear el ID de la orden (empezando desde 0)
-  const formatOrderId = (orderId: string) => {
-    // Si el orderId es un número, formatearlo con ceros a la izquierda
-    const numericId = parseInt(orderId.replace(/\D/g, ''));
-    if (!isNaN(numericId)) {
-      return `ORD-${String(numericId).padStart(8, '0')}`;
-    }
-    return orderId;
-  };
-
-  const formatOrderNotes = (notes: string): string[] => {
-    if (!notes) return [];
-    return notes.split(/[.,\n]/)
-      .map(note => note.trim())
-      .filter(note => note.length > 0);
   };
 
   return (
