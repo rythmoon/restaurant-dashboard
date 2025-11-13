@@ -315,8 +315,8 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     try {
       const isMobile = window.innerWidth <= 768;
       const windowFeatures = isMobile 
-        ? 'width=320,height=600,scrollbars=no,toolbar=no,location=no'
-        : 'width=600,height=800,scrollbars=yes,toolbar=no,location=no';
+        ? 'width=400,height=700,scrollbars=yes,toolbar=no,location=no'
+        : 'width=800,height=900,scrollbars=yes,toolbar=no,location=no';
       
       const printWindow = window.open('', '_blank', windowFeatures);
       if (printWindow) {
@@ -340,6 +340,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           padding: 10px !important;
           font-size: 12px !important;
           transform: scale(1) !important;
+          background: white !important;
         }
         .ticket {
           width: 100% !important;
@@ -354,64 +355,71 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       @media screen {
         body {
           font-family: 'Courier New', monospace, sans-serif;
-          font-size: 14px;
-          line-height: 1.3;
+          font-size: 15px;
+          line-height: 1.4;
           margin: 0;
-          padding: 20px;
-          background: #f5f5f5;
+          padding: 25px;
+          background: #f0f2f5;
           color: #000;
           display: flex;
-          justify-content: center;
-          align-items: flex-start;
+          flex-direction: column;
+          align-items: center;
           min-height: 100vh;
           box-sizing: border-box;
         }
         .ticket {
           background: white;
-          padding: 25px;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-          border-radius: 12px;
-          border: 1px solid #ddd;
-          max-width: 400px;
+          padding: 30px;
+          box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+          border-radius: 15px;
+          border: 2px solid #e0e0e0;
+          max-width: 600px;
           width: 100%;
-          transform: scale(1);
+          margin-bottom: 20px;
         }
         
         /* Aviso para vista previa */
         .print-notice {
-          background: #fff3cd;
-          border: 1px solid #ffeaa7;
-          border-radius: 6px;
-          padding: 12px;
-          margin-bottom: 15px;
+          background: #e3f2fd;
+          border: 2px solid #2196f3;
+          border-radius: 10px;
+          padding: 15px;
+          margin-bottom: 20px;
           text-align: center;
-          font-size: 13px;
-          color: #856404;
+          font-size: 14px;
+          color: #1565c0;
+          max-width: 600px;
+          width: 100%;
         }
         
         /* Botones de control */
         .print-controls {
           text-align: center;
-          margin: 20px 0;
-          padding: 15px;
-          background: #e9ecef;
-          border-radius: 8px;
+          margin: 25px 0;
+          padding: 20px;
+          background: #ffffff;
+          border-radius: 10px;
+          border: 2px solid #e0e0e0;
+          max-width: 600px;
+          width: 100%;
         }
         
         .print-btn {
           background: #007bff;
           color: white;
           border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
+          padding: 12px 25px;
+          border-radius: 8px;
           cursor: pointer;
-          font-size: 14px;
-          margin: 0 5px;
+          font-size: 16px;
+          margin: 0 8px;
           font-weight: bold;
+          transition: background 0.3s;
         }
         
         .print-btn:hover {
           background: #0056b3;
+          transform: translateY(-2px);
         }
         
         .cancel-btn {
@@ -431,100 +439,128 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         font-weight: bold;
       }
       .divider {
-        border-top: 1px dashed #000;
-        margin: 8px 0;
+        border-top: 2px dashed #333;
+        margin: 12px 0;
       }
       .item-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
+        padding: 3px 0;
       }
       .notes {
         font-style: italic;
-        font-size: 11px;
-        margin-left: 10px;
-        color: #555;
+        font-size: 13px;
+        margin-left: 12px;
+        color: #666;
       }
       .order-notes-list {
-        margin: 8px 0;
-        padding-left: 18px;
+        margin: 10px 0;
+        padding-left: 20px;
       }
       .order-notes-list div {
-        margin-bottom: 3px;
+        margin-bottom: 4px;
+        font-size: 14px;
       }
       table {
         width: 100%;
         border-collapse: collapse;
-        margin: 8px 0;
+        margin: 12px 0;
+        font-size: 14px;
       }
       th, td {
-        padding: 3px 0;
+        padding: 6px 4px;
         text-align: left;
         border-bottom: 1px solid #ddd;
       }
       th {
-        border-bottom: 2px solid #000;
+        border-bottom: 3px solid #000;
         font-weight: bold;
+        font-size: 15px;
+        background-color: #f8f9fa;
       }
       .total {
-        border-top: 2px solid #000;
-        padding-top: 8px;
-        margin-top: 8px;
+        border-top: 3px solid #000;
+        padding-top: 12px;
+        margin-top: 12px;
       }
       .product-name {
         font-weight: bold;
         text-transform: uppercase;
-        font-size: 13px;
+        font-size: 15px;
+        margin-bottom: 3px;
       }
       .quantity {
         font-weight: bold;
-        font-size: 13px;
+        font-size: 15px;
       }
       .calculation-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 3px;
-        font-size: 12px;
+        margin-bottom: 5px;
+        font-size: 14px;
+        padding: 2px 0;
       }
       
       /* Estilos específicos para móvil en vista previa */
       @media screen and (max-width: 768px) {
         body {
-          padding: 10px;
+          padding: 15px;
         }
         .ticket {
-          padding: 15px;
+          padding: 20px;
           max-width: 100%;
         }
         .print-controls {
-          padding: 10px;
+          padding: 15px;
         }
         .print-btn {
-          padding: 8px 16px;
-          font-size: 13px;
+          padding: 10px 20px;
+          font-size: 14px;
           display: block;
           width: 100%;
-          margin: 5px 0;
+          margin: 8px 0;
         }
+        .print-notice {
+          font-size: 13px;
+          padding: 12px;
+        }
+      }
+
+      /* Mejoras específicas para vista previa amplia */
+      .header-title {
+        font-size: 20px !important;
+        margin-bottom: 8px !important;
+      }
+      .header-info {
+        font-size: 15px !important;
+        margin-bottom: 4px !important;
+      }
+      .total-amount {
+        font-size: 18px !important;
       }
     </style>
   </head>
   <body>
     <div class="print-notice no-print">
-      <strong>VISTA PREVIA DEL TICKET</strong><br>
-      El ticket se imprimirá en tamaño 80mm (ticket térmico)
+      <strong>VISTA PREVIA DEL TICKET - TAMAÑO AMPLIADO</strong><br>
+      <em>Al imprimir, el ticket se ajustará automáticamente al tamaño de ticket térmico (80mm)</em>
     </div>
     
     ${ticketContent}
     
     <div class="print-controls no-print">
       <button class="print-btn" onclick="window.print()">🖨️ Imprimir Ticket</button>
-      <button class="print-btn cancel-btn" onclick="window.close()">❌ Cerrar</button>
+      <button class="print-btn cancel-btn" onclick="window.close()">❌ Cerrar Ventana</button>
+      <p style="margin-top: 15px; font-size: 13px; color: #666;">
+        <strong>Nota:</strong> Esta es una vista previa ampliada para mejor legibilidad.<br>
+        La impresión real será en tamaño de ticket térmico.
+      </p>
     </div>
 
     <script>
       window.onload = function() {
-        console.log('Vista previa del ticket cargada correctamente');
+        console.log('Vista previa ampliada del ticket cargada correctamente');
         
         window.addEventListener('afterprint', function() {
           setTimeout(function() {
@@ -560,7 +596,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       
       return `
         <div class="divider"></div>
-        <div class="bold" style="margin-bottom: 5px;">NOTAS DEL PEDIDO:</div>
+        <div class="bold" style="margin-bottom: 8px; font-size: 16px;">NOTAS DEL PEDIDO:</div>
         <div class="order-notes-list">
           ${notesArray.map(note => `<div>• ${note}</div>`).join('')}
         </div>
@@ -570,46 +606,46 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return `
       <div class="ticket">
         <div class="center">
-          <div class="bold" style="font-size: 16px; margin-bottom: 5px;">${RESTAURANT_INFO.name}</div>
-          <div>${RESTAURANT_INFO.address}</div>
-          <div>Tel: ${RESTAURANT_INFO.phone}</div>
+          <div class="bold header-title">${RESTAURANT_INFO.name}</div>
+          <div class="header-info">${RESTAURANT_INFO.address}</div>
+          <div class="header-info">Tel: ${RESTAURANT_INFO.phone}</div>
           <div class="divider"></div>
         </div>
         
         <div class="item-row">
-          <span class="bold">ORDEN:</span>
-          <span>${formatOrderId(order.id)}</span>
+          <span class="bold" style="font-size: 15px;">ORDEN:</span>
+          <span style="font-size: 15px;">${formatOrderId(order.id)}</span>
         </div>
         <div class="item-row">
-          <span class="bold">TIPO:</span>
-          <span>${sourceText}</span>
+          <span class="bold" style="font-size: 15px;">TIPO:</span>
+          <span style="font-size: 15px;">${sourceText}</span>
         </div>
         <div class="item-row">
-          <span class="bold">FECHA:</span>
-          <span>${order.createdAt.toLocaleDateString()}</span>
+          <span class="bold" style="font-size: 15px;">FECHA:</span>
+          <span style="font-size: 15px;">${order.createdAt.toLocaleDateString()}</span>
         </div>
         <div class="item-row">
-          <span class="bold">HORA:</span>
-          <span>${order.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+          <span class="bold" style="font-size: 15px;">HORA:</span>
+          <span style="font-size: 15px;">${order.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
         </div>
         
         <div class="divider"></div>
         
         <div class="item-row bold">
-          <span>CLIENTE:</span>
-          <span>${order.customerName}</span>
+          <span style="font-size: 16px;">CLIENTE:</span>
+          <span style="font-size: 16px;">${order.customerName}</span>
         </div>
         <div class="item-row">
-          <span>TELÉFONO:</span>
-          <span>${order.phone}</span>
+          <span style="font-size: 15px;">TELÉFONO:</span>
+          <span style="font-size: 15px;">${order.phone}</span>
         </div>
         ${order.tableNumber ? `<div class="item-row">
-          <span>MESA:</span>
-          <span>${order.tableNumber}</span>
+          <span style="font-size: 15px;">MESA:</span>
+          <span style="font-size: 15px;">${order.tableNumber}</span>
         </div>` : ''}
         ${order.address ? `<div class="item-row">
-          <span>DIRECCIÓN:</span>
-          <span>${order.address}</span>
+          <span style="font-size: 15px;">DIRECCIÓN:</span>
+          <span style="font-size: 15px;">${order.address}</span>
         </div>` : ''}
         
         <div class="divider"></div>
@@ -617,20 +653,20 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         <table>
           <thead>
             <tr>
-              <th style="width: 15%">Cant</th>
-              <th style="width: 55%">Descripción</th>
-              <th style="width: 30%; text-align: right;">Precio</th>
+              <th style="width: 15%; font-size: 16px;">Cant</th>
+              <th style="width: 55%; font-size: 16px;">Descripción</th>
+              <th style="width: 30%; text-align: right; font-size: 16px;">Precio</th>
             </tr>
           </thead>
           <tbody>
             ${order.items.map(item => `
               <tr>
-                <td class="quantity">${item.quantity}x</td>
+                <td class="quantity" style="font-size: 15px;">${item.quantity}x</td>
                 <td>
                   <div class="product-name">${item.menuItem.name}</div>
                   ${item.notes ? `<div class="notes">Nota: ${item.notes}</div>` : ''}
                 </td>
-                <td style="text-align: right;">S/ ${(item.menuItem.price * item.quantity).toFixed(2)}</td>
+                <td style="text-align: right; font-size: 15px;">S/ ${(item.menuItem.price * item.quantity).toFixed(2)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -642,24 +678,24 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         
         <!-- Sección de cálculos con IGV -->
         <div class="calculation-row">
-          <span>Subtotal:</span>
-          <span>S/ ${subtotal.toFixed(2)}</span>
+          <span style="font-size: 15px;">Subtotal:</span>
+          <span style="font-size: 15px;">S/ ${subtotal.toFixed(2)}</span>
         </div>
         <div class="calculation-row">
-          <span>IGV (18%):</span>
-          <span>S/ ${igv.toFixed(2)}</span>
+          <span style="font-size: 15px;">IGV (18%):</span>
+          <span style="font-size: 15px;">S/ ${igv.toFixed(2)}</span>
         </div>
         
-        <div class="item-row total bold" style="font-size: 15px;">
-          <span>TOTAL:</span>
-          <span>S/ ${order.total.toFixed(2)}</span>
+        <div class="item-row total bold">
+          <span class="total-amount">TOTAL:</span>
+          <span class="total-amount">S/ ${order.total.toFixed(2)}</span>
         </div>
         
         <div class="divider"></div>
         <div class="center">
-          <div class="bold" style="font-size: 14px; margin: 8px 0;">¡GRACIAS POR SU PEDIDO!</div>
-          <div style="font-weight: bold; margin: 5px 0;">*** ${sourceText} ***</div>
-          <div style="margin-top: 10px; font-size: 11px; color: #666;">
+          <div class="bold" style="font-size: 17px; margin: 12px 0;">¡GRACIAS POR SU PEDIDO!</div>
+          <div style="font-weight: bold; margin: 8px 0; font-size: 16px;">*** ${sourceText} ***</div>
+          <div style="margin-top: 15px; font-size: 13px; color: #666;">
             Generado: ${new Date().toLocaleString()}
           </div>
         </div>
