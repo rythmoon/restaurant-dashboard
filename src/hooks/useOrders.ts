@@ -21,7 +21,7 @@ export const useOrders = () => {
         id: item.menu_item_id,
         name: item.menu_item_name,
         price: parseFloat(item.menu_item_price as any),
-        category: '', // Esto se puede mejorar obteniendo datos del menú
+        category: '',
         type: 'food',
         available: true,
         isDailySpecial: false
@@ -162,16 +162,40 @@ export const useOrders = () => {
 
   const deleteOrder = async (orderId: string) => {
     try {
-      const { error } = await supabase
+      console.log('🔄 Intentando eliminar orden:', orderId);
+      
+      // Primero eliminar los items de la orden (debido a la foreign key constraint)
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .delete()
+        .eq('order_id', orderId);
+
+      if (itemsError) {
+        console.error('Error eliminando items:', itemsError);
+        throw itemsError;
+      }
+
+      console.log('✅ Items eliminados, ahora eliminando orden...');
+
+      // Luego eliminar la orden
+      const { error: orderError } = await supabase
         .from('orders')
         .delete()
         .eq('id', orderId);
 
-      if (error) throw error;
+      if (orderError) {
+        console.error('Error eliminando orden:', orderError);
+        throw orderError;
+      }
+
+      console.log('✅ Orden eliminada de Supabase');
+
+      // Actualizar el estado local
+      setOrders(prev => prev.filter(order => order.id !== orderId));
       
-      await fetchOrders();
       return { success: true };
     } catch (error: any) {
+      console.error('❌ Error completo al eliminar:', error);
       return { success: false, error: error.message };
     }
   };
