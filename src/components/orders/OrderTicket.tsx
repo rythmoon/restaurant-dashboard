@@ -7,64 +7,55 @@ interface OrderTicketProps {
 }
 
 const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
-  // Estilos para el PDF - tamaño real para impresión térmica (80mm)
+  // Estilos para el PDF
   const styles = StyleSheet.create({
     page: {
-      fontFamily: 'Courier',
-      fontSize: 10,
-      lineHeight: 1.1,
-      padding: 8,
+      flexDirection: 'column',
       backgroundColor: '#FFFFFF',
-      width: '100%',
-      height: '100%',
+      padding: 20,
+      fontSize: 10,
+      fontFamily: 'Helvetica',
     },
-    ticket: {
-      width: '100%',
-      maxWidth: '72mm',
-    },
-    center: {
+    header: {
       textAlign: 'center',
-      marginBottom: 4,
+      marginBottom: 10,
+    },
+    title: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      marginBottom: 5,
+    },
+    subtitle: {
+      fontSize: 10,
+      marginBottom: 2,
+    },
+    divider: {
+      borderBottom: '1pt solid #000000',
+      marginVertical: 5,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 3,
     },
     bold: {
       fontWeight: 'bold',
-      fontFamily: 'Courier-Bold',
     },
-    divider: {
-      borderBottom: '1pt dashed #000000',
-      marginVertical: 4,
-    },
-    itemRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 2,
-    },
-    notes: {
-      fontStyle: 'italic',
-      fontSize: 8,
-      marginLeft: 8,
-    },
-    orderNotesList: {
-      marginVertical: 4,
-      paddingLeft: 12,
-    },
-    orderNoteItem: {
-      marginBottom: 1,
-      fontSize: 9,
+    section: {
+      marginBottom: 10,
     },
     tableHeader: {
       flexDirection: 'row',
       borderBottom: '1pt solid #000000',
-      paddingBottom: 2,
-      marginBottom: 2,
+      paddingBottom: 3,
+      marginBottom: 3,
     },
     tableRow: {
       flexDirection: 'row',
-      marginBottom: 3,
+      marginBottom: 5,
     },
     colQuantity: {
       width: '15%',
-      fontWeight: 'bold',
     },
     colDescription: {
       width: '55%',
@@ -73,127 +64,131 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       width: '30%',
       textAlign: 'right',
     },
-    productName: {
-      fontWeight: 'bold',
-      textTransform: 'uppercase',
-      marginBottom: 1,
-      fontSize: 9,
+    notes: {
+      fontStyle: 'italic',
+      fontSize: 8,
+      marginLeft: 10,
+    },
+    orderNotes: {
+      marginTop: 5,
+      marginBottom: 10,
+    },
+    orderNoteItem: {
+      marginBottom: 2,
     },
     totalSection: {
       borderTop: '2pt solid #000000',
-      paddingTop: 4,
-      marginTop: 4,
+      paddingTop: 5,
+      marginTop: 5,
+    },
+    footer: {
+      textAlign: 'center',
+      marginTop: 15,
     },
     calculationRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 1,
+      marginBottom: 2,
       fontSize: 9,
-    },
-    footer: {
-      textAlign: 'center',
-      marginTop: 8,
-    },
-    smallText: {
-      fontSize: 8,
     }
   });
 
-  // Componente del documento PDF - tamaño real para impresión (80mm)
+  // Componente del documento PDF
   const TicketDocument = () => (
     <Document>
-      <Page 
-        size={[226.77, 841.89]} // 80mm de ancho para impresora térmica
-        style={styles.page}
-        orientation="portrait"
-      >
-        <View style={styles.ticket}>
-          <View style={styles.center}>
-            <Text style={styles.bold}>MARY'S RESTAURANT</Text>
-            <Text style={styles.smallText}>Av. Isabel La Católica 1254</Text>
-            <Text style={styles.smallText}>Tel: 941 778 599</Text>
-            <View style={styles.divider} />
-          </View>
+      <Page size={[226.77, 841.89]} style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>MARY'S RESTAURANT</Text>
+          <Text style={styles.subtitle}>Av. Isabel La Católica 1254</Text>
+          <Text style={styles.subtitle}>Tel: 941 778 599</Text>
+          <View style={styles.divider} />
+        </View>
 
-          <View style={styles.itemRow}>
+        <View style={styles.section}>
+          <View style={styles.row}>
             <Text style={styles.bold}>ORDEN:</Text>
             <Text>{formatOrderId(order.id)}</Text>
           </View>
-          <View style={styles.itemRow}>
+          <View style={styles.row}>
             <Text style={styles.bold}>TIPO:</Text>
             <Text>{getSourceText(order.source.type)}</Text>
           </View>
-          <View style={styles.itemRow}>
+          <View style={styles.row}>
             <Text style={styles.bold}>FECHA:</Text>
             <Text>{order.createdAt.toLocaleDateString()}</Text>
           </View>
-          <View style={styles.itemRow}>
+          <View style={styles.row}>
             <Text style={styles.bold}>HORA:</Text>
-            <Text>{order.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+            <Text>{order.createdAt.toLocaleTimeString()}</Text>
           </View>
+        </View>
 
-          <View style={styles.divider} />
+        <View style={styles.divider} />
 
-          <View style={[styles.itemRow, styles.bold]}>
-            <Text>CLIENTE:</Text>
-            <Text>{order.customerName}</Text>
+        <View style={styles.section}>
+          <View style={styles.row}>
+            <Text style={styles.bold}>CLIENTE:</Text>
+            <Text style={styles.bold}>{order.customerName}</Text>
           </View>
-          <View style={styles.itemRow}>
+          <View style={styles.row}>
             <Text>TELÉFONO:</Text>
             <Text>{order.phone}</Text>
           </View>
           {order.tableNumber && (
-            <View style={styles.itemRow}>
+            <View style={styles.row}>
               <Text>MESA:</Text>
               <Text>{order.tableNumber}</Text>
             </View>
           )}
           {order.address && (
-            <View style={styles.itemRow}>
+            <View style={styles.row}>
               <Text>DIRECCIÓN:</Text>
               <Text>{order.address}</Text>
             </View>
           )}
+        </View>
 
-          <View style={styles.divider} />
+        <View style={styles.divider} />
 
-          <View style={styles.tableHeader}>
-            <Text style={styles.colQuantity}>Cant</Text>
-            <Text style={styles.colDescription}>Descripción</Text>
-            <Text style={styles.colPrice}>Precio</Text>
-          </View>
+        {/* Tabla de productos */}
+        <View style={styles.tableHeader}>
+          <Text style={styles.colQuantity}>Cant</Text>
+          <Text style={styles.colDescription}>Descripción</Text>
+          <Text style={styles.colPrice}>Precio</Text>
+        </View>
 
-          {order.items.map((item, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.colQuantity}>{item.quantity}x</Text>
-              <View style={styles.colDescription}>
-                <Text style={styles.productName}>{item.menuItem.name}</Text>
-                {item.notes && (
-                  <Text style={styles.notes}>Nota: {item.notes}</Text>
-                )}
-              </View>
-              <Text style={styles.colPrice}>
-                S/ {(item.menuItem.price * item.quantity).toFixed(2)}
-              </Text>
+        {order.items.map((item, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={styles.colQuantity}>{item.quantity}x</Text>
+            <View style={styles.colDescription}>
+              <Text style={styles.bold}>{item.menuItem.name}</Text>
+              {item.notes && (
+                <Text style={styles.notes}>Nota: {item.notes}</Text>
+              )}
             </View>
-          ))}
+            <Text style={styles.colPrice}>
+              S/ {(item.menuItem.price * item.quantity).toFixed(2)}
+            </Text>
+          </View>
+        ))}
 
-          {order.notes && (
-            <>
-              <View style={styles.divider} />
-              <View>
-                <Text style={styles.bold}>NOTAS DEL PEDIDO:</Text>
-                <View style={styles.orderNotesList}>
-                  {formatOrderNotes(order.notes).map((note, index) => (
-                    <Text key={index} style={styles.orderNoteItem}>• {note}</Text>
-                  ))}
-                </View>
-              </View>
-            </>
-          )}
+        {/* Notas del pedido */}
+        {order.notes && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.orderNotes}>
+              <Text style={styles.bold}>NOTAS DEL PEDIDO:</Text>
+              {formatOrderNotes(order.notes).map((note, index) => (
+                <Text key={index} style={styles.orderNoteItem}>• {note}</Text>
+              ))}
+            </View>
+          </>
+        )}
 
-          <View style={styles.divider} />
+        <View style={styles.divider} />
 
+        {/* Cálculos con IGV */}
+        <View style={styles.totalSection}>
           <View style={styles.calculationRow}>
             <Text>Subtotal:</Text>
             <Text>S/ {(order.total / 1.18).toFixed(2)}</Text>
@@ -202,20 +197,20 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             <Text>IGV (18%):</Text>
             <Text>S/ {(order.total - (order.total / 1.18)).toFixed(2)}</Text>
           </View>
-          <View style={[styles.itemRow, styles.bold, styles.totalSection]}>
+          <View style={[styles.row, styles.bold]}>
             <Text>TOTAL:</Text>
             <Text>S/ {order.total.toFixed(2)}</Text>
           </View>
+        </View>
 
-          <View style={styles.divider} />
+        <View style={styles.divider} />
 
-          <View style={styles.footer}>
-            <Text style={styles.bold}>¡GRACIAS POR SU PEDIDO!</Text>
-            <Text>*** {getSourceText(order.source.type)} ***</Text>
-            <Text style={[styles.smallText, { marginTop: 6 }]}>
-              {new Date().toLocaleString()}
-            </Text>
-          </View>
+        <View style={styles.footer}>
+          <Text style={styles.bold}>¡GRACIAS POR SU PEDIDO!</Text>
+          <Text>*** {getSourceText(order.source.type)} ***</Text>
+          <Text style={{ marginTop: 10, fontSize: 8 }}>
+            {new Date().toLocaleString()}
+          </Text>
         </View>
       </Page>
     </Document>
@@ -228,6 +223,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       
+      // Generar nombre del archivo con el formato: ORD-numero-de-orden-nombre-cliente-fecha.pdf
       const fileName = generateFileName(order);
       
       link.href = url;
@@ -241,14 +237,31 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
-  // Función para imprimir - CON VISTA PREVIA MEJORADA
+  // Generar nombre del archivo con formato: ORD-numero-de-orden-nombre-cliente-fecha.pdf
+  const generateFileName = (order: Order) => {
+    const orderNumber = formatOrderId(order.id)
+      .replace(/[^a-zA-Z0-9-]/g, '') // Solo mantener letras, números y guiones
+      .toLowerCase();
+    
+    const customerName = order.customerName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-') // Reemplazar caracteres especiales con guiones
+      .replace(/-+/g, '-') // Reemplazar múltiples guiones consecutivos con uno solo
+      .replace(/^-|-$/g, ''); // Eliminar guiones al inicio y final
+    
+    const date = order.createdAt.toISOString().split('T')[0];
+    
+    return `${orderNumber}-${customerName}-${date}.pdf`;
+  };
+
   const handlePrint = async () => {
     const printContent = document.getElementById(`ticket-${order.id}`);
     if (printContent) {
+      // Para escritorio usar tamaño mayor, para móvil más pequeño
       const isMobile = window.innerWidth <= 768;
       const windowFeatures = isMobile 
-        ? 'width=400,height=700,scrollbars=no,toolbar=no,location=no'
-        : 'width=500,height=800,scrollbars=no,toolbar=no,location=no';
+        ? 'width=320,height=600,scrollbars=no,toolbar=no,location=no'
+        : 'width=800,height=600,scrollbars=no,toolbar=no,location=no';
       
       const printWindow = window.open('', '_blank', windowFeatures);
       if (printWindow) {
@@ -259,192 +272,125 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             <head>
               <title>Ticket ${order.id}</title>
               <style>
-                /* RESET Y BASE */
-                * {
-                  margin: 0;
-                  padding: 0;
+                @media print {
+                  @page {
+                    margin: 0;
+                    size: 80mm auto;
+                  }
+                }
+                body {
+                  font-family: 'Courier New', monospace;
+                  font-size: 12px;
+                  line-height: 1.2;
+                  width: 80mm;
+                  margin: 0 auto;
+                  padding: 10px;
+                  background: white;
+                  color: black;
                   box-sizing: border-box;
                 }
-                
-                body {
-                  background: #f0f0f0;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  min-height: 100vh;
-                  font-family: 'Courier New', monospace;
-                  padding: 20px;
-                }
-
-                /* CONTENEDOR PRINCIPAL - VISTA PREVIA 98x148mm */
-                .preview-container {
-                  width: 98mm;
-                  min-height: 148mm;
-                  background: white;
-                  border: 1px solid #ccc;
-                  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                  border-radius: 8px;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: column;
-                }
-
-                /* TICKET DENTRO DEL CONTENEDOR - ESCALADO PARA LLENAR EL ESPACIO */
                 .ticket {
-                  flex: 1;
-                  padding: 15px;
-                  font-size: 14px; /* Texto más grande para vista previa */
-                  line-height: 1.3;
-                  transform: scale(1.1); /* Escalado para llenar mejor el espacio */
-                  transform-origin: top center;
                   width: 100%;
+                  max-width: 80mm;
+                  margin: 0 auto;
                 }
-
-                /* ESTILOS DEL TICKET */
                 .center {
                   text-align: center;
-                  margin-bottom: 8px;
                 }
                 .bold {
                   font-weight: bold;
                 }
                 .divider {
                   border-top: 1px dashed #000;
-                  margin: 8px 0;
+                  margin: 5px 0;
                 }
                 .item-row {
                   display: flex;
                   justify-content: space-between;
-                  margin-bottom: 4px;
+                  margin-bottom: 3px;
                 }
                 .notes {
                   font-style: italic;
-                  font-size: 11px;
+                  font-size: 10px;
                   margin-left: 10px;
-                  color: #666;
                 }
                 .order-notes-list {
-                  margin: 8px 0;
+                  margin: 5px 0;
                   padding-left: 15px;
                 }
                 .order-notes-list div {
-                  margin-bottom: 3px;
-                  font-size: 12px;
+                  margin-bottom: 2px;
                 }
                 table {
                   width: 100%;
                   border-collapse: collapse;
-                  margin: 8px 0;
                 }
                 th, td {
-                  padding: 3px 0;
+                  padding: 2px 0;
                   text-align: left;
-                  border-bottom: 1px solid #eee;
                 }
                 th {
                   border-bottom: 1px solid #000;
-                  font-weight: bold;
                 }
                 .total {
                   border-top: 2px solid #000;
-                  padding-top: 8px;
-                  margin-top: 8px;
+                  padding-top: 5px;
+                  margin-top: 5px;
                 }
                 .product-name {
                   font-weight: bold;
                   text-transform: uppercase;
-                  font-size: 13px;
                 }
                 .quantity {
                   font-weight: bold;
-                  font-size: 13px;
                 }
                 .calculation-row {
                   display: flex;
                   justify-content: space-between;
-                  margin-bottom: 3px;
-                  font-size: 12px;
+                  margin-bottom: 2px;
+                  font-size: 11px;
                 }
-                .footer {
-                  text-align: center;
-                  margin-top: 12px;
-                  padding-top: 8px;
-                  border-top: 1px dashed #ccc;
-                }
-
-                /* ESTILOS PARA IMPRESIÓN - 80mm REAL */
-                @media print {
+                
+                /* Estilos para vista previa en escritorio */
+                @media screen and (min-width: 769px) {
                   body {
-                    background: white !important;
-                    padding: 0 !important;
-                    display: block !important;
-                  }
-                  .preview-container {
-                    width: 80mm !important;
-                    min-height: auto !important;
-                    border: none !important;
-                    box-shadow: none !important;
-                    border-radius: 0 !important;
+                    width: 100%;
+                    max-width: 400px;
+                    background: #f5f5f5;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
                   }
                   .ticket {
-                    transform: none !important;
-                    font-size: 12px !important;
-                    padding: 10px !important;
-                    line-height: 1.2 !important;
-                  }
-                  .divider {
-                    margin: 5px 0 !important;
-                  }
-                  .item-row {
-                    margin-bottom: 3px !important;
-                  }
-                  .product-name {
-                    font-size: 11px !important;
-                  }
-                  .quantity {
-                    font-size: 11px !important;
-                  }
-                  .notes {
-                    font-size: 9px !important;
-                  }
-                  @page {
-                    margin: 0;
-                    size: 80mm auto;
+                    background: white;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    border-radius: 8px;
                   }
                 }
-
-                /* RESPONSIVE PARA MÓVIL */
+                
+                /* Estilos para vista previa en móvil */
                 @media screen and (max-width: 768px) {
                   body {
-                    padding: 10px;
-                  }
-                  .preview-container {
-                    width: 95vw;
-                    min-height: 140mm;
-                  }
-                  .ticket {
-                    transform: scale(1);
-                    font-size: 13px;
+                    width: 100%;
+                    max-width: 300px;
+                    margin: 0 auto;
                   }
                 }
               </style>
             </head>
             <body>
-              <div class="preview-container">
-                ${ticketContent}
-              </div>
+              ${ticketContent}
               <script>
+                // Esperar a que cargue el contenido antes de imprimir
                 window.onload = function() {
-                  // Mostrar mensaje de ayuda
-                  console.log('Vista previa - Tamaño: 98x148mm');
-                  console.log('Al imprimir se ajustará a 80mm para impresora térmica');
-                  
                   setTimeout(function() {
                     window.print();
                     setTimeout(function() {
                       window.close();
                     }, 1000);
-                  }, 500);
+                  }, 100);
                 };
               </script>
             </body>
@@ -455,16 +401,28 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
-  // Función para generar contenido del ticket HTML - ACTUALIZADA
+  const getSourceText = (sourceType: Order['source']['type']) => {
+    const sourceMap = {
+      'phone': 'POR TELÉFONO',
+      'walk-in': 'RECOGE EN TIENDA', 
+      'delivery': 'DELIVERY',
+      'reservation': 'RESERVA'
+    };
+    return sourceMap[sourceType] || sourceType;
+  };
+
   const generateTicketContent = (order: Order) => {
     const sourceText = getSourceText(order.source.type);
     
+    // Cálculos del IGV
     const subtotal = order.total / 1.18;
     const igv = order.total - subtotal;
 
+    // Procesar notas del pedido para convertirlas en lista
     const formatOrderNotes = (notes: string) => {
       if (!notes) return '';
       
+      // Dividir por puntos, comas o saltos de línea
       const notesArray = notes.split(/[.,\n]/)
         .map(note => note.trim())
         .filter(note => note.length > 0);
@@ -483,7 +441,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return `
       <div class="ticket">
         <div class="center">
-          <div class="bold" style="font-size: 16px;">MARY'S RESTAURANT</div>
+          <div class="bold">MARY'S RESTAURANT</div>
           <div>Av. Isabel La Católica 1254</div>
           <div>Tel: 941 778 599</div>
           <div class="divider"></div>
@@ -553,6 +511,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         
         <div class="divider"></div>
         
+        <!-- Sección de cálculos con IGV -->
         <div class="calculation-row">
           <span>Subtotal:</span>
           <span>S/ ${subtotal.toFixed(2)}</span>
@@ -568,10 +527,10 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         </div>
         
         <div class="divider"></div>
-        <div class="footer">
+        <div class="center">
           <div class="bold">¡GRACIAS POR SU PEDIDO!</div>
           <div>*** ${sourceText} ***</div>
-          <div style="margin-top: 8px; font-size: 10px; color: #666;">
+          <div style="margin-top: 10px; font-size: 10px;">
             ${new Date().toLocaleString()}
           </div>
         </div>
@@ -579,33 +538,9 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     `;
   };
 
-  const getSourceText = (sourceType: Order['source']['type']) => {
-    const sourceMap = {
-      'phone': 'POR TELÉFONO',
-      'walk-in': 'RECOGE EN TIENDA', 
-      'delivery': 'DELIVERY',
-      'reservation': 'RESERVA'
-    };
-    return sourceMap[sourceType] || sourceType;
-  };
-
-  const generateFileName = (order: Order) => {
-    const orderNumber = formatOrderId(order.id)
-      .replace(/[^a-zA-Z0-9-]/g, '')
-      .toLowerCase();
-    
-    const customerName = order.customerName
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-    
-    const date = order.createdAt.toISOString().split('T')[0];
-    
-    return `${orderNumber}-${customerName}-${date}.pdf`;
-  };
-
+  // Función para formatear el ID de la orden (empezando desde 0)
   const formatOrderId = (orderId: string) => {
+    // Si el orderId es un número, formatearlo con ceros a la izquierda
     const numericId = parseInt(orderId.replace(/\D/g, ''));
     if (!isNaN(numericId)) {
       return `ORD-${String(numericId).padStart(8, '0')}`;
@@ -623,6 +558,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   return (
     <>
       <div style={{ display: 'flex', gap: '10px', margin: '10px 0' }}>
+        {/* Botón para imprimir */}
         <button
           onClick={handlePrint}
           data-order-id={order.id}
@@ -640,6 +576,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           Imprimir Ticket {formatOrderId(order.id)}
         </button>
 
+        {/* Nuevo botón para descargar PDF */}
         <button
           onClick={handleDownloadPDF}
           className="download-pdf-button"
@@ -657,6 +594,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         </button>
       </div>
 
+      {/* Contenido del ticket - Solo para referencia, oculto por defecto */}
       <div id={`ticket-${order.id}`} style={{ display: 'none' }}>
         <div>Ticket content for printing</div>
       </div>
