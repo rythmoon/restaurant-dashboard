@@ -22,6 +22,8 @@ export interface OrderSource {
 
 export interface Order {
   id: string;
+  orderNumber?: string;        // Nuevo campo: ORD-0000-0000001
+  kitchenNumber?: string;      // Nuevo campo: COM-0000-00000001
   items: OrderItem[];
   status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   createdAt: Date;
@@ -38,6 +40,8 @@ export interface Order {
 // Interfaces para Supabase
 export interface DatabaseOrder {
   id: string;
+  order_number?: string;
+  kitchen_number?: string;
   customer_name: string;
   phone: string;
   address?: string;
