@@ -68,7 +68,7 @@ const KitchenManager: React.FC = () => {
 
   // Mostrar notificación de nueva orden
   const showNewOrderNotification = (order: Order) => {
-    const message = `📱 Nuevo pedido #${formatOrderId(order.id)} - ${order.customerName} (${getSourceText(order.source.type)})`;
+    const message = `📱 Nuevo pedido #${getDisplayKitchenNumber(order)} - ${order.customerName} (${getSourceText(order.source.type)})`;
     setToast({ message, type: 'success' });
     
     // Reproducir sonido simple
@@ -99,6 +99,11 @@ const KitchenManager: React.FC = () => {
     }
   };
 
+  // Función para obtener número de cocina para display
+  const getDisplayKitchenNumber = (order: Order) => {
+    return order.kitchenNumber || `COM-${order.id.slice(-8).toUpperCase()}`;
+  };
+
   // Actualizar estado de la orden
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     const result = await updateOrderStatus(orderId, newStatus);
@@ -106,7 +111,7 @@ const KitchenManager: React.FC = () => {
       const order = orders.find(o => o.id === orderId);
       if (order) {
         setToast({ 
-          message: `✅ Pedido #${formatOrderId(orderId)} marcado como LISTO`, 
+          message: `✅ Pedido #${getDisplayKitchenNumber(order)} marcado como LISTO`, 
           type: 'success' 
         });
       }
@@ -263,9 +268,9 @@ const KitchenManager: React.FC = () => {
                       <div className="flex items-center space-x-3 mb-2">
                         {getStatusIcon(order.status)}
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">Orden #{formatOrderId(order.id)}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">Comanda #{getDisplayKitchenNumber(order)}</h3>
                           <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
-                            <span>Mesa: {order.tableNumber || 'N/A'}</span>
+                            <span>Orden: {order.orderNumber || `ORD-${order.id.slice(-8).toUpperCase()}`}</span>
                             <span>•</span>
                             <span>{getTimeElapsed(order.createdAt)}</span>
                             <span>•</span>
@@ -311,9 +316,6 @@ const KitchenManager: React.FC = () => {
                                 <div className="text-xs text-gray-500">Nota: {item.notes}</div>
                               )}
                             </div>
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            S/ {(item.menuItem.price * item.quantity).toFixed(2)}
                           </div>
                         </div>
                       ))}
@@ -413,10 +415,6 @@ const KitchenManager: React.FC = () => {
 };
 
 // Funciones auxiliares
-const formatOrderId = (orderId: string) => {
-  return `ORD-${orderId.slice(-8).toUpperCase()}`;
-};
-
 const getSourceText = (sourceType: 'phone' | 'walk-in' | 'delivery') => {
   const sourceMap = {
     'phone': 'Teléfono',
