@@ -60,9 +60,19 @@ const OrdersManager: React.FC = () => {
     return sourceMap[sourceType] || sourceType;
   };
 
-  // Función para obtener número de orden para display
-  const getDisplayOrderNumber = (order: Order) => {
+  // Función para obtener el número de orden a mostrar según el tipo
+  const getDisplayNumber = (order: Order) => {
+    // Para pedidos por teléfono, mostrar número de cocina
+    if (order.source.type === 'phone') {
+      return order.kitchenNumber || `COM-${order.id.slice(-8).toUpperCase()}`;
+    }
+    // Para walk-in y delivery, mostrar número de orden normal
     return order.orderNumber || `ORD-${order.id.slice(-8).toUpperCase()}`;
+  };
+
+  // Función para obtener el tipo de número (para estilos)
+  const getNumberType = (order: Order) => {
+    return order.source.type === 'phone' ? 'kitchen' : 'order';
   };
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
@@ -210,63 +220,76 @@ const OrdersManager: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{getDisplayOrderNumber(order)}</div>
-                      <div className="text-sm text-gray-500">
-                        {order.createdAt.toLocaleDateString()} {order.createdAt.toLocaleTimeString()}
-                      </div>
-                      {order.kitchenNumber && (
-                        <div className="text-xs text-blue-600">
-                          Cocina: {order.kitchenNumber}
+                {filteredOrders.map((order) => {
+                  const displayNumber = getDisplayNumber(order);
+                  const numberType = getNumberType(order);
+                  
+                  return (
+                    <tr key={order.id} className="hover:bg-gray-50">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        {/* MOSTRAR SOLO EL NÚMERO PRINCIPAL SEGÚN EL TIPO DE PEDIDO */}
+                        <div className="flex items-center space-x-2 mb-1">
+                          <div className={`text-sm font-medium ${
+                            numberType === 'kitchen' ? 'text-green-600' : 'text-gray-900'
+                          }`}>
+                            {displayNumber}
+                          </div>
+                          {numberType === 'kitchen' && (
+                            <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
+                              COCINA
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{order.customerName}</div>
-                      <div className="text-sm text-gray-500">{order.phone}</div>
-                      {order.tableNumber && (
-                        <div className="text-sm text-gray-500">Mesa {order.tableNumber}</div>
-                      )}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {getSourceText(order.source.type)}
-                      </span>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        S/ {order.total.toFixed(2)}
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
-                        className={`text-xs font-semibold rounded-full px-2 py-1 border-0 ${getStatusColor(order.status)}`}
-                      >
-                        <option value="pending">Pendiente</option>
-                        <option value="preparing">Preparando</option>
-                        <option value="ready">Listo</option>
-                        <option value="delivered">Entregado</option>
-                        <option value="cancelled">Cancelado</option>
-                      </select>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <OrderTicket order={order} />
-                      {user?.role === 'admin' && (
-                        <button
-                          onClick={() => handleDeleteOrder(order.id, getDisplayOrderNumber(order))}
-                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar orden"
+                        <div className="text-sm text-gray-500">
+                          {order.createdAt.toLocaleDateString()} {order.createdAt.toLocaleTimeString()}
+                        </div>
+                        {/* SOLO MOSTRAR EL NÚMERO PRINCIPAL, NO EL ALTERNO */}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{order.customerName}</div>
+                        <div className="text-sm text-gray-500">{order.phone}</div>
+                        {order.tableNumber && (
+                          <div className="text-sm text-gray-500">Mesa {order.tableNumber}</div>
+                        )}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                          {getSourceText(order.source.type)}
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          S/ {order.total.toFixed(2)}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
+                          className={`text-xs font-semibold rounded-full px-2 py-1 border-0 ${getStatusColor(order.status)}`}
                         >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                          <option value="pending">Pendiente</option>
+                          <option value="preparing">Preparando</option>
+                          <option value="ready">Listo</option>
+                          <option value="delivered">Entregado</option>
+                          <option value="cancelled">Cancelado</option>
+                        </select>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <OrderTicket order={order} />
+                        {user?.role === 'admin' && (
+                          <button
+                            onClick={() => handleDeleteOrder(order.id, displayNumber)}
+                            className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar orden"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
