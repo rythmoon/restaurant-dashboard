@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Minus, X, ShoppingBag, ArrowRight, Search, Trash2, User } from 'lucide-react';
-import { MenuItem, OrderItem, Order } from '../../types'; // ELIMINADO OrderSource
+import { MenuItem, OrderItem, Order } from '../../types';
 import OrderTicket from './OrderTicket';
 import { useMenu } from '../../hooks/useMenu';
 import { useCustomers } from '../../hooks/useCustomers';
@@ -55,7 +55,6 @@ const OrderReception: React.FC = () => {
   const [orderNotes, setOrderNotes] = useState('');
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  // ELIMINADO: showConfirmation y setShowConfirmation
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('Entradas');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
@@ -239,7 +238,7 @@ const OrderReception: React.FC = () => {
     return cart.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0);
   };
 
-  // Crear orden en Supabase
+  // Crear orden en Supabase - FUNCIÓN CORREGIDA
   const handleCreateOrder = async () => {
     if (cart.length === 0) {
       showToast('El pedido está vacío', 'error');
@@ -276,9 +275,15 @@ const OrderReception: React.FC = () => {
       if (result.success) {
         showToast('✅ Orden creada exitosamente', 'success');
         
-        // Crear objeto Order para el ticket
+        // Obtener los números generados por el trigger
+        const orderNumber = result.order.order_number;
+        const kitchenNumber = result.order.kitchen_number;
+        
+        // Crear objeto Order para el ticket con los números correctos
         const newOrder: Order = {
           id: result.order.id,
+          orderNumber: orderNumber,        // Usar el número generado
+          kitchenNumber: kitchenNumber,    // Usar el número generado
           items: cart,
           status: 'pending',
           createdAt: new Date(),
