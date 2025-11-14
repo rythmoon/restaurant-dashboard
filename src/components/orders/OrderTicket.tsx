@@ -286,7 +286,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     </Document>
   );
 
-  // Componente del documento PDF normal (SIN CAMBIOS)
+  // Componente del documento PDF normal (ACTUALIZADO para mostrar mesa)
   const NormalTicketDocument = () => (
     <Document>
       <Page size={[226.77, 841.89]} style={normalStyles.page}>
@@ -319,7 +319,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
 
         <View style={normalStyles.divider} />
 
-        {/* Información del cliente */}
+        {/* Información del cliente ACTUALIZADA con mesa */}
         <View style={normalStyles.section}>
           <View style={[normalStyles.row, normalStyles.bold]}>
             <Text>CLIENTE:</Text>
@@ -546,7 +546,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
-  // Generar contenido HTML para impresión (MODIFICADO para ticket cocina)
+  // Generar contenido HTML para impresión (MODIFICADO para ambos tickets)
   const generateTicketContent = (order: Order, isKitchenTicket: boolean) => {
     if (isKitchenTicket) {
       // TICKET COCINA MODIFICADO
@@ -601,7 +601,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         </div>
       `;
     } else {
-      // TICKET NORMAL (SIN CAMBIOS)
+      // TICKET NORMAL ACTUALIZADO con mesa
       const subtotal = order.total / 1.18;
       const igv = order.total - subtotal;
       
@@ -706,8 +706,8 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   // Funciones auxiliares
   const getSourceText = (sourceType: Order['source']['type']) => {
     const sourceMap = {
-      'phone': 'TELÉFONO',
-      'walk-in': 'RECOGE EN TIENDA', 
+      'phone': 'COCINA',
+      'walk-in': 'LOCAL', 
       'delivery': 'DELIVERY',
     };
     return sourceMap[sourceType] || sourceType;
