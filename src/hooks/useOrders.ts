@@ -100,7 +100,7 @@ export const useOrders = () => {
         0
       );
 
-      // Crear la orden en Supabase
+      // Crear la orden en Supabase - INCLUIR order_number y kitchen_number en el SELECT
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -113,11 +113,7 @@ export const useOrders = () => {
           total: total,
           status: 'pending',
         }])
-        .select(`
-          *,
-          order_number,
-          kitchen_number
-        `)
+        .select('*, order_number, kitchen_number')  // Asegurar que incluya los números generados
         .single();
 
       if (orderError) throw orderError;
