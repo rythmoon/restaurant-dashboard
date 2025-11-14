@@ -52,6 +52,7 @@ const OrderReception: React.FC = () => {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [tableNumber, setTableNumber] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,6 +127,7 @@ const OrderReception: React.FC = () => {
     setCustomerName('');
     setPhone('');
     setAddress('');
+    setTableNumber('');
     setShowSuggestions(false);
   };
 
@@ -238,7 +240,7 @@ const OrderReception: React.FC = () => {
     return cart.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0);
   };
 
-  // Crear orden en Supabase - FUNCIÓN CORREGIDA
+  // Crear orden en Supabase
   const handleCreateOrder = async () => {
     if (cart.length === 0) {
       showToast('El pedido está vacío', 'error');
@@ -250,12 +252,18 @@ const OrderReception: React.FC = () => {
       return;
     }
 
+    // Validar mesa para pedidos Local
+    if (activeTab === 'walk-in' && !tableNumber) {
+      showToast('Por favor ingresa el número de mesa', 'error');
+      return;
+    }
+
     try {
       const result = await createOrder({
         customerName: customerName,
         phone: phone,
         address: activeTab === 'delivery' ? address : undefined,
-        tableNumber: activeTab === 'walk-in' ? '1' : undefined,
+        tableNumber: activeTab === 'walk-in' ? tableNumber : undefined,
         source: {
           type: activeTab,
           ...(activeTab === 'delivery' && { deliveryAddress: address })
@@ -282,8 +290,8 @@ const OrderReception: React.FC = () => {
         // Crear objeto Order para el ticket con los números correctos
         const newOrder: Order = {
           id: result.order.id,
-          orderNumber: orderNumber,        // Usar el número generado
-          kitchenNumber: kitchenNumber,    // Usar el número generado
+          orderNumber: orderNumber,
+          kitchenNumber: kitchenNumber,
           items: cart,
           status: 'pending',
           createdAt: new Date(),
@@ -291,12 +299,12 @@ const OrderReception: React.FC = () => {
           customerName: customerName,
           phone: phone,
           address: activeTab === 'delivery' ? address : undefined,
+          tableNumber: activeTab === 'walk-in' ? tableNumber : undefined,
           source: {
             type: activeTab,
             ...(activeTab === 'delivery' && { deliveryAddress: address })
           },
           notes: orderNotes,
-          tableNumber: activeTab === 'walk-in' ? '1' : undefined,
         };
 
         setLastOrder(newOrder);
@@ -304,6 +312,7 @@ const OrderReception: React.FC = () => {
         setCustomerName('');
         setPhone('');
         setAddress('');
+        setTableNumber('');
         setOrderNotes('');
         setSelectedCustomer(null);
         setShowCartDrawer(false);
@@ -351,7 +360,7 @@ const OrderReception: React.FC = () => {
                       activeTab === 'walk-in' ? 'bg-green-500' : 'bg-red-500'
                     }`} />
                     <span className="text-xs text-gray-600 capitalize">
-                      {activeTab === 'phone' ? 'Teléfono' : activeTab === 'walk-in' ? 'Local' : 'Delivery'}
+                      {activeTab === 'phone' ? 'Cocina' : activeTab === 'walk-in' ? 'Local' : 'Delivery'}
                     </span>
                   </div>
                 </div>
@@ -471,7 +480,7 @@ const OrderReception: React.FC = () => {
                         </button>
                         <button
                           onClick={handleCreateOrder}
-                          disabled={!customerName || !phone}
+                          disabled={!customerName || !phone || (activeTab === 'walk-in' && !tableNumber)}
                           className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold text-lg"
                         >
                           <span>Confirmar Pedido</span>
@@ -495,7 +504,7 @@ const OrderReception: React.FC = () => {
                 {/* Tipo de Pedido */}
                 <div className="flex space-x-2">
                   {[
-                    { type: 'phone', label: '📞', title: 'Teléfono' },
+                    { type: 'phone', label: '📞', title: 'Cocina' },
                     { type: 'walk-in', label: '👤', title: 'Local' },
                     { type: 'delivery', label: '📍', title: 'Delivery' }
                   ].map(({ type, label, title }) => (
@@ -577,6 +586,18 @@ const OrderReception: React.FC = () => {
                   placeholder="Teléfono *"
                   required
                 />
+
+                {/* Mesa (solo para Local) */}
+                {activeTab === 'walk-in' && (
+                  <input
+                    type="text"
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                    className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    placeholder="Número de mesa *"
+                    required
+                  />
+                )}
 
                 {/* Dirección (solo delivery) */}
                 {activeTab === 'delivery' && (
@@ -737,8 +758,8 @@ const OrderReception: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-3">Tipo de Pedido</label>
                   <div className="space-y-2">
                     {[
-                      { type: 'phone', label: '📞 Teléfono' },
-                      { type: 'walk-in', label: '👤 Paso por Local' },
+                      { type: 'phone', label: '📞 Cocina' },
+                      { type: 'walk-in', label: '👤 Local' },
                       { type: 'delivery', label: '📍 Delivery' }
                     ].map(({ type, label }) => (
                       <button
@@ -848,6 +869,23 @@ const OrderReception: React.FC = () => {
                         required
                       />
                     </div>
+
+                    {/* Campo de Mesa (solo para Local) */}
+                    {activeTab === 'walk-in' && (
+                      <div className="md:col-span-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mesa *
+                        </label>
+                        <input
+                          type="text"
+                          value={tableNumber}
+                          onChange={(e) => setTableNumber(e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Número de mesa"
+                          required
+                        />
+                      </div>
+                    )}
 
                     {/* Campo de Dirección (solo para delivery) */}
                     {activeTab === 'delivery' && (
@@ -1137,7 +1175,7 @@ const OrderReception: React.FC = () => {
                           </button>
                           <button
                             onClick={handleCreateOrder}
-                            disabled={!customerName || !phone}
+                            disabled={!customerName || !phone || (activeTab === 'walk-in' && !tableNumber)}
                             className="w-full bg-gradient-to-r from-red-500 to-amber-500 text-white py-3 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
                           >
                             <span>Confirmar Pedido</span>
