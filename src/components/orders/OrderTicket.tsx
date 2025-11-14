@@ -24,6 +24,25 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return 'Sistema';
   };
 
+  // Función para formatear número de orden normal (ORD-0000-00000000)
+  const formatNormalOrderId = (orderId: string) => {
+    // Generar un número secuencial basado en el timestamp
+    const timestamp = order.createdAt.getTime();
+    const sequentialNumber = Math.floor(timestamp % 100000000); // Últimos 8 dígitos
+    const dayNumber = Math.floor((timestamp / 100000000) % 10000); // Primeros 4 dígitos
+    
+    return `ORD-${String(dayNumber).padStart(4, '0')}-${String(sequentialNumber).padStart(8, '0')}`;
+  };
+
+  // Función para formatear número de comanda (COM-0000000)
+  const formatKitchenOrderId = (orderId: string) => {
+    // Generar un número secuencial más simple
+    const timestamp = order.createdAt.getTime();
+    const sequentialNumber = Math.floor(timestamp % 10000000); // 7 dígitos
+    
+    return `COM-${String(sequentialNumber).padStart(7, '0')}`;
+  };
+
   // Estilos para el PDF de COCINA (sin precios)
   const kitchenStyles = StyleSheet.create({
     page: {
@@ -230,7 +249,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           </View>
           <View style={kitchenStyles.row}>
             <Text style={kitchenStyles.label}>COMANDA:</Text>
-            <Text style={kitchenStyles.value}>#{formatOrderId(order.id)}</Text>
+            <Text style={kitchenStyles.value}>{formatKitchenOrderId(order.id)}</Text>
           </View>
           <View style={kitchenStyles.row}>
             <Text style={kitchenStyles.label}>FECHA:</Text>
@@ -247,7 +266,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         <View style={kitchenStyles.divider} />
 
         {/* Header de productos */}
-        <Text style={kitchenStyles.productsHeader}>PRODUCTOS</Text>
+        <Text style={kitchenStyles.productsHeader}>DESCRIPCIÓN</Text>
         
         <View style={kitchenStyles.divider} />
 
@@ -291,7 +310,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         <View style={normalStyles.section}>
           <View style={normalStyles.row}>
             <Text style={normalStyles.bold}>ORDEN:</Text>
-            <Text>{formatOrderId(order.id)}</Text>
+            <Text>{formatNormalOrderId(order.id)}</Text>
           </View>
           <View style={normalStyles.row}>
             <Text style={normalStyles.bold}>TIPO:</Text>
@@ -558,7 +577,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           </div>
           <div class="info-row">
             <span class="bold">COMANDA:</span>
-            <span>#${formatOrderId(order.id)}</span>
+            <span>${formatKitchenOrderId(order.id)}</span>
           </div>
           <div class="info-row">
             <span class="bold">FECHA:</span>
@@ -571,7 +590,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           
           <div class="divider"></div>
           
-          <div class="products-header">PRODUCTOS</div>
+          <div class="products-header">DESCRIPCIÓN</div>
           
           <div class="divider"></div>
           
@@ -606,7 +625,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           
           <div class="info-row">
             <span class="bold">ORDEN:</span>
-            <span>${formatOrderId(order.id)}</span>
+            <span>${formatNormalOrderId(order.id)}</span>
           </div>
           <div class="info-row">
             <span class="bold">TIPO:</span>
@@ -712,7 +731,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   };
 
   const generateFileName = (order: Order, isKitchenTicket: boolean) => {
-    const orderNumber = formatOrderId(order.id);
+    const orderNumber = isKitchenTicket ? formatKitchenOrderId(order.id) : formatNormalOrderId(order.id);
     const customerName = order.customerName
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
@@ -742,7 +761,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             fontWeight: 'bold'
           }}
         >
-          {isPhoneOrder ? '📋 Ticket Cocina' : '🧾 Ticket Cliente'} #{formatOrderId(order.id)}
+          {isPhoneOrder ? '📋 Ticket Cocina' : '🧾 Ticket Cliente'} #{isPhoneOrder ? formatKitchenOrderId(order.id) : formatNormalOrderId(order.id)}
         </button>
 
         <button
