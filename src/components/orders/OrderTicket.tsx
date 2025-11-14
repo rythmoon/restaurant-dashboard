@@ -25,7 +25,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   };
 
   // Función para formatear número de orden normal (ORD-0000-00000000)
-  const formatNormalOrderId = (orderId: string) => {
+  const formatNormalOrderId = () => {
     // Generar un número secuencial basado en el timestamp
     const timestamp = order.createdAt.getTime();
     const sequentialNumber = Math.floor(timestamp % 100000000); // Últimos 8 dígitos
@@ -35,7 +35,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   };
 
   // Función para formatear número de comanda (COM-0000000)
-  const formatKitchenOrderId = (orderId: string) => {
+  const formatKitchenOrderId = () => {
     // Generar un número secuencial más simple
     const timestamp = order.createdAt.getTime();
     const sequentialNumber = Math.floor(timestamp % 10000000); // 7 dígitos
@@ -249,7 +249,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           </View>
           <View style={kitchenStyles.row}>
             <Text style={kitchenStyles.label}>COMANDA:</Text>
-            <Text style={kitchenStyles.value}>{formatKitchenOrderId(order.id)}</Text>
+            <Text style={kitchenStyles.value}>{formatKitchenOrderId()}</Text>
           </View>
           <View style={kitchenStyles.row}>
             <Text style={kitchenStyles.label}>FECHA:</Text>
@@ -310,7 +310,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         <View style={normalStyles.section}>
           <View style={normalStyles.row}>
             <Text style={normalStyles.bold}>ORDEN:</Text>
-            <Text>{formatNormalOrderId(order.id)}</Text>
+            <Text>{formatNormalOrderId()}</Text>
           </View>
           <View style={normalStyles.row}>
             <Text style={normalStyles.bold}>TIPO:</Text>
@@ -577,7 +577,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           </div>
           <div class="info-row">
             <span class="bold">COMANDA:</span>
-            <span>${formatKitchenOrderId(order.id)}</span>
+            <span>${formatKitchenOrderId()}</span>
           </div>
           <div class="info-row">
             <span class="bold">FECHA:</span>
@@ -625,7 +625,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           
           <div class="info-row">
             <span class="bold">ORDEN:</span>
-            <span>${formatNormalOrderId(order.id)}</span>
+            <span>${formatNormalOrderId()}</span>
           </div>
           <div class="info-row">
             <span class="bold">TIPO:</span>
@@ -712,15 +712,6 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
-  // Funciones auxiliares
-  const formatOrderId = (orderId: string) => {
-    const numericId = parseInt(orderId.replace(/\D/g, ''));
-    if (!isNaN(numericId)) {
-      return String(numericId).padStart(5, '0');
-    }
-    return orderId;
-  };
-
   const getSourceText = (sourceType: Order['source']['type']) => {
     const sourceMap = {
       'phone': 'TELÉFONO',
@@ -731,7 +722,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   };
 
   const generateFileName = (order: Order, isKitchenTicket: boolean) => {
-    const orderNumber = isKitchenTicket ? formatKitchenOrderId(order.id) : formatNormalOrderId(order.id);
+    const orderNumber = isKitchenTicket ? formatKitchenOrderId() : formatNormalOrderId();
     const customerName = order.customerName
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
@@ -761,7 +752,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             fontWeight: 'bold'
           }}
         >
-          {isPhoneOrder ? '📋 Ticket Cocina' : '🧾 Ticket Cliente'} #{isPhoneOrder ? formatKitchenOrderId(order.id) : formatNormalOrderId(order.id)}
+          {isPhoneOrder ? '📋 Ticket Cocina' : '🧾 Ticket Cliente'} #{isPhoneOrder ? formatKitchenOrderId() : formatNormalOrderId()}
         </button>
 
         <button
