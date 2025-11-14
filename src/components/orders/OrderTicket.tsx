@@ -39,10 +39,10 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       borderBottom: '2pt solid #000000',
       paddingBottom: 8,
     },
-    restaurantName: {
-      fontSize: 16,
+    customerName: {
+      fontSize: 18,
       fontWeight: 'bold',
-      marginBottom: 3,
+      marginBottom: 5,
       textTransform: 'uppercase',
     },
     area: {
@@ -214,7 +214,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       <Page size={[226.77, 841.89]} style={kitchenStyles.page}>
         {/* Header */}
         <View style={kitchenStyles.header}>
-          <Text style={kitchenStyles.restaurantName}>MARY'S RESTAURANT</Text>
+          <Text style={kitchenStyles.customerName}>{order.customerName.toUpperCase()}</Text>
           <Text style={kitchenStyles.area}>** COCINA **</Text>
         </View>
 
@@ -268,10 +268,8 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
 
         <View style={kitchenStyles.divider} />
 
-        {/* Footer con asteriscos */}
+        {/* Footer con una sola fila de asteriscos */}
         <View style={kitchenStyles.footer}>
-          <Text style={kitchenStyles.asteriskLine}>********************************</Text>
-          <Text style={kitchenStyles.asteriskLine}>********************************</Text>
           <Text style={kitchenStyles.asteriskLine}>********************************</Text>
         </View>
       </Page>
@@ -545,7 +543,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       return `
         <div class="ticket">
           <div class="center">
-            <div class="bold uppercase">MARY'S RESTAURANT</div>
+            <div class="bold uppercase" style="font-size: 18px;">${order.customerName.toUpperCase()}</div>
             <div class="bold">** COCINA **</div>
             <div class="divider"></div>
           </div>
@@ -588,8 +586,6 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           <div class="divider"></div>
           
           <div class="center">
-            <div class="asterisk-line">********************************</div>
-            <div class="asterisk-line">********************************</div>
             <div class="asterisk-line">********************************</div>
           </div>
         </div>
