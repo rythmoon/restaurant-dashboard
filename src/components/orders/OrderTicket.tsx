@@ -24,23 +24,14 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     return 'Sistema';
   };
 
-  // Función para formatear número de orden normal (ORD-0000-00000000)
-  const formatNormalOrderId = () => {
-    // Generar un número secuencial basado en el timestamp
-    const timestamp = order.createdAt.getTime();
-    const sequentialNumber = Math.floor(timestamp % 100000000); // Últimos 8 dígitos
-    const dayNumber = Math.floor((timestamp / 100000000) % 10000); // Primeros 4 dígitos
-    
-    return `ORD-${String(dayNumber).padStart(4, '0')}-${String(sequentialNumber).padStart(8, '0')}`;
+  // Función para obtener número de orden para display
+  const getDisplayOrderNumber = () => {
+    return order.orderNumber || `ORD-${order.id.slice(-8).toUpperCase()}`;
   };
 
-  // Función para formatear número de comanda (COM-0000000)
-  const formatKitchenOrderId = () => {
-    // Generar un número secuencial más simple
-    const timestamp = order.createdAt.getTime();
-    const sequentialNumber = Math.floor(timestamp % 10000000); // 7 dígitos
-    
-    return `COM-${String(sequentialNumber).padStart(7, '0')}`;
+  // Función para obtener número de cocina para display
+  const getDisplayKitchenNumber = () => {
+    return order.kitchenNumber || `COM-${order.id.slice(-8).toUpperCase()}`;
   };
 
   // Estilos para el PDF de COCINA (sin precios)
@@ -58,10 +49,10 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       borderBottom: '2pt solid #000000',
       paddingBottom: 8,
     },
-    customerName: {
-      fontSize: 18,
+    restaurantName: {
+      fontSize: 16,
       fontWeight: 'bold',
-      marginBottom: 5,
+      marginBottom: 3,
       textTransform: 'uppercase',
     },
     area: {
@@ -131,7 +122,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   });
 
-  // Estilos normales para otros tipos de pedido (el que ya tenías)
+  // Estilos normales para otros tipos de pedido
   const normalStyles = StyleSheet.create({
     page: {
       flexDirection: 'column',
@@ -233,7 +224,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       <Page size={[226.77, 841.89]} style={kitchenStyles.page}>
         {/* Header */}
         <View style={kitchenStyles.header}>
-          <Text style={kitchenStyles.customerName}>{order.customerName.toUpperCase()}</Text>
+          <Text style={kitchenStyles.restaurantName}>MARY'S RESTAURANT</Text>
           <Text style={kitchenStyles.area}>** COCINA **</Text>
         </View>
 
@@ -249,7 +240,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           </View>
           <View style={kitchenStyles.row}>
             <Text style={kitchenStyles.label}>COMANDA:</Text>
-            <Text style={kitchenStyles.value}>{formatKitchenOrderId()}</Text>
+            <Text style={kitchenStyles.value}>#{getDisplayKitchenNumber()}</Text>
           </View>
           <View style={kitchenStyles.row}>
             <Text style={kitchenStyles.label}>FECHA:</Text>
@@ -266,7 +257,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         <View style={kitchenStyles.divider} />
 
         {/* Header de productos */}
-        <Text style={kitchenStyles.productsHeader}>DESCRIPCIÓN</Text>
+        <Text style={kitchenStyles.productsHeader}>PRODUCTOS</Text>
         
         <View style={kitchenStyles.divider} />
 
@@ -287,15 +278,17 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
 
         <View style={kitchenStyles.divider} />
 
-        {/* Footer con una sola fila de asteriscos */}
+        {/* Footer con asteriscos */}
         <View style={kitchenStyles.footer}>
+          <Text style={kitchenStyles.asteriskLine}>********************************</Text>
+          <Text style={kitchenStyles.asteriskLine}>********************************</Text>
           <Text style={kitchenStyles.asteriskLine}>********************************</Text>
         </View>
       </Page>
     </Document>
   );
 
-  // Componente del documento PDF normal (el original)
+  // Componente del documento PDF normal
   const NormalTicketDocument = () => (
     <Document>
       <Page size={[226.77, 841.89]} style={normalStyles.page}>
@@ -310,7 +303,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
         <View style={normalStyles.section}>
           <View style={normalStyles.row}>
             <Text style={normalStyles.bold}>ORDEN:</Text>
-            <Text>{formatNormalOrderId()}</Text>
+            <Text>{getDisplayOrderNumber()}</Text>
           </View>
           <View style={normalStyles.row}>
             <Text style={normalStyles.bold}>TIPO:</Text>
@@ -562,7 +555,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
       return `
         <div class="ticket">
           <div class="center">
-            <div class="bold uppercase" style="font-size: 18px;">${order.customerName.toUpperCase()}</div>
+            <div class="bold uppercase">MARY'S RESTAURANT</div>
             <div class="bold">** COCINA **</div>
             <div class="divider"></div>
           </div>
@@ -577,7 +570,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           </div>
           <div class="info-row">
             <span class="bold">COMANDA:</span>
-            <span>${formatKitchenOrderId()}</span>
+            <span>#${getDisplayKitchenNumber()}</span>
           </div>
           <div class="info-row">
             <span class="bold">FECHA:</span>
@@ -590,7 +583,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           
           <div class="divider"></div>
           
-          <div class="products-header">DESCRIPCIÓN</div>
+          <div class="products-header">PRODUCTOS</div>
           
           <div class="divider"></div>
           
@@ -606,11 +599,13 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           
           <div class="center">
             <div class="asterisk-line">********************************</div>
+            <div class="asterisk-line">********************************</div>
+            <div class="asterisk-line">********************************</div>
           </div>
         </div>
       `;
     } else {
-      // TICKET NORMAL (tu código original)
+      // TICKET NORMAL
       const subtotal = order.total / 1.18;
       const igv = order.total - subtotal;
       
@@ -625,7 +620,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
           
           <div class="info-row">
             <span class="bold">ORDEN:</span>
-            <span>${formatNormalOrderId()}</span>
+            <span>${getDisplayOrderNumber()}</span>
           </div>
           <div class="info-row">
             <span class="bold">TIPO:</span>
@@ -712,6 +707,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
     }
   };
 
+  // Funciones auxiliares
   const getSourceText = (sourceType: Order['source']['type']) => {
     const sourceMap = {
       'phone': 'TELÉFONO',
@@ -722,7 +718,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
   };
 
   const generateFileName = (order: Order, isKitchenTicket: boolean) => {
-    const orderNumber = isKitchenTicket ? formatKitchenOrderId() : formatNormalOrderId();
+    const orderNumber = isKitchenTicket ? getDisplayKitchenNumber() : getDisplayOrderNumber();
     const customerName = order.customerName
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
@@ -752,7 +748,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
             fontWeight: 'bold'
           }}
         >
-          {isPhoneOrder ? '📋 Ticket Cocina' : '🧾 Ticket Cliente'} #{isPhoneOrder ? formatKitchenOrderId() : formatNormalOrderId()}
+          {isPhoneOrder ? '📋 Ticket Cocina' : '🧾 Ticket Cliente'} #{isPhoneOrder ? getDisplayKitchenNumber() : getDisplayOrderNumber()}
         </button>
 
         <button
