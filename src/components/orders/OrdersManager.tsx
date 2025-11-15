@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Download } from 'lucide-react';
 import { Order } from '../../types';
 import OrderTicket from './OrderTicket';
 import { useOrders } from '../../hooks/useOrders';
@@ -7,16 +7,18 @@ import { useAuth } from '../../hooks/useAuth';
 
 const OrdersManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [paymentFilter, setPaymentFilter] = useState<string>('');
   const { user } = useAuth();
   const { 
     orders, 
     loading, 
     updateOrderStatus, 
-    deleteOrder
+    deleteOrder,
+    exportOrdersToCSV,
+    getTodayOrders
   } = useOrders();
 
-  // Filtrar órdenes por búsqueda Y por estado
+  // Filtrar órdenes por búsqueda Y por método de pago
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,9 +26,9 @@ const OrdersManager: React.FC = () => {
       order.kitchenNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.phone?.includes(searchTerm);
     
-    const matchesStatus = statusFilter === '' || order.status === statusFilter;
+    const matchesPayment = paymentFilter === '' || order.paymentMethod === paymentFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesPayment;
   });
 
   const getStatusColor = (status: Order['status']) => {
@@ -49,6 +51,24 @@ const OrdersManager: React.FC = () => {
       cancelled: 'Cancelado'
     };
     return statusMap[status];
+  };
+
+  const getPaymentColor = (paymentMethod?: string) => {
+    const colors = {
+      'EFECTIVO': 'bg-green-100 text-green-800 border-green-200',
+      'YAPE/PLIN': 'bg-purple-100 text-purple-800 border-purple-200',
+      'TARJETA': 'bg-blue-100 text-blue-800 border-blue-200',
+    };
+    return colors[paymentMethod as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200';
+  };
+
+  const getPaymentText = (paymentMethod?: string) => {
+    const paymentMap = {
+      'EFECTIVO': 'EFECTIVO',
+      'YAPE/PLIN': 'YAPE/PLIN',
+      'TARJETA': 'TARJETA',
+    };
+    return paymentMethod ? paymentMap[paymentMethod as keyof typeof paymentMap] : 'NO APLICA';
   };
 
   const getSourceText = (sourceType: Order['source']['type']) => {
@@ -93,9 +113,29 @@ const OrdersManager: React.FC = () => {
     }
   };
 
-  // Función para manejar cambio en el filtro de estado
-  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
+  // Función para manejar cambio en el filtro de método de pago
+  const handlePaymentFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPaymentFilter(e.target.value);
+  };
+
+  // Función para exportar órdenes del día
+  const handleExportTodayOrders = () => {
+    const todayOrders = getTodayOrders();
+    exportOrdersToCSV(todayOrders);
+  };
+
+  // Función para exportar todas las órdenes
+  const handleExportAllOrders = () => {
+    exportOrdersToCSV(orders);
+  };
+
+  // Función para redirigir a Recepción
+  const handleNewOrder = () => {
+    window.location.hash = '#reception';
+    // Forzar recarga si ya está en reception
+    if (window.location.hash === '#reception') {
+      window.location.reload();
+    }
   };
 
   return (
@@ -107,13 +147,29 @@ const OrdersManager: React.FC = () => {
             {filteredOrders.length} de {orders.length} {orders.length === 1 ? 'orden' : 'órdenes'}
           </p>
         </div>
-        <button 
-          onClick={() => window.location.hash = 'reception'}
-          className="bg-gradient-to-r from-red-500 to-amber-500 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all duration-300 flex items-center space-x-2"
-        >
-          <Plus size={20} />
-          <span>Nueva Orden</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button 
+            onClick={handleExportTodayOrders}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all duration-300 flex items-center space-x-2"
+          >
+            <Download size={16} />
+            <span>Exportar Hoy</span>
+          </button>
+          <button 
+            onClick={handleExportAllOrders}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all duration-300 flex items-center space-x-2"
+          >
+            <Download size={16} />
+            <span>Exportar Todo</span>
+          </button>
+          <button 
+            onClick={handleNewOrder}
+            className="bg-gradient-to-r from-red-500 to-amber-500 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all duration-300 flex items-center space-x-2"
+          >
+            <Plus size={20} />
+            <span>Nueva Orden</span>
+          </button>
+        </div>
       </div>
 
       {/* Barra de búsqueda y filtros */}
@@ -130,28 +186,26 @@ const OrdersManager: React.FC = () => {
             />
           </div>
           <select 
-            value={statusFilter}
-            onChange={handleStatusFilterChange}
+            value={paymentFilter}
+            onChange={handlePaymentFilterChange}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
           >
-            <option value="">Todos los estados</option>
-            <option value="pending">Pendiente</option>
-            <option value="preparing">Preparando</option>
-            <option value="ready">Listo</option>
-            <option value="delivered">Entregado</option>
-            <option value="cancelled">Cancelado</option>
+            <option value="">Todos los pagos</option>
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="YAPE/PLIN">Yape/Plin</option>
+            <option value="TARJETA">Tarjeta</option>
           </select>
         </div>
         
         {/* Mostrar filtro activo */}
-        {statusFilter && (
+        {paymentFilter && (
           <div className="mt-3 flex items-center space-x-2">
             <span className="text-sm text-gray-600">Filtro activo:</span>
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(statusFilter as Order['status'])}`}>
-              {getStatusText(statusFilter as Order['status'])}
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getPaymentColor(paymentFilter)}`}>
+              {getPaymentText(paymentFilter)}
             </span>
             <button
-              onClick={() => setStatusFilter('')}
+              onClick={() => setPaymentFilter('')}
               className="text-xs text-red-500 hover:text-red-700"
             >
               ✕ Limpiar
@@ -170,23 +224,23 @@ const OrdersManager: React.FC = () => {
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg mb-2">
-              {searchTerm || statusFilter ? 'No se encontraron órdenes' : 'No hay órdenes registradas'}
+              {searchTerm || paymentFilter ? 'No se encontraron órdenes' : 'No hay órdenes registradas'}
             </div>
             <div className="text-gray-400 text-sm">
-              {searchTerm && statusFilter 
-                ? 'Intenta con otros términos de búsqueda o cambia el filtro de estado' 
+              {searchTerm && paymentFilter 
+                ? 'Intenta con otros términos de búsqueda o cambia el filtro de pago' 
                 : searchTerm
                 ? 'Intenta con otros términos de búsqueda'
-                : statusFilter
-                ? `No hay órdenes con estado "${getStatusText(statusFilter as Order['status'])}"`
+                : paymentFilter
+                ? `No hay órdenes con pago "${getPaymentText(paymentFilter)}"`
                 : 'Las órdenes aparecerán aquí cuando las crees en Recepción'
               }
             </div>
-            {(searchTerm || statusFilter) && (
+            {(searchTerm || paymentFilter) && (
               <button
                 onClick={() => {
                   setSearchTerm('');
-                  setStatusFilter('');
+                  setPaymentFilter('');
                 }}
                 className="mt-4 text-red-500 hover:text-red-700 text-sm font-medium"
               >
@@ -210,6 +264,9 @@ const OrdersManager: React.FC = () => {
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pago
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
@@ -266,6 +323,11 @@ const OrdersManager: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPaymentColor(order.paymentMethod)}`}>
+                          {getPaymentText(order.paymentMethod)}
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <select
                           value={order.status}
                           onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
@@ -301,30 +363,36 @@ const OrdersManager: React.FC = () => {
 
       {/* Estadísticas rápidas */}
       <div className="bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-white/20">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen de Estados</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen de Pagos</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { status: 'pending', label: 'Pendientes' },
-            { status: 'preparing', label: 'Preparando' },
-            { status: 'ready', label: 'Listos' },
-            { status: 'delivered', label: 'Entregados' },
-            { status: 'cancelled', label: 'Cancelados' }
-          ].map(({ status, label }) => {
-            const count = orders.filter(order => order.status === status).length;
+            { method: 'EFECTIVO', label: 'Efectivo', color: 'bg-green-100 text-green-800' },
+            { method: 'YAPE/PLIN', label: 'Yape/Plin', color: 'bg-purple-100 text-purple-800' },
+            { method: 'TARJETA', label: 'Tarjeta', color: 'bg-blue-100 text-blue-800' },
+            { method: undefined, label: 'No Aplica', color: 'bg-gray-100 text-gray-800' }
+          ].map(({ method, label, color }) => {
+            const count = orders.filter(order => order.paymentMethod === method).length;
+            const total = orders
+              .filter(order => order.paymentMethod === method)
+              .reduce((sum, order) => sum + order.total, 0);
+            
             return (
               <div 
-                key={status}
+                key={label}
                 className={`text-center p-3 rounded-lg cursor-pointer transition-all ${
-                  statusFilter === status 
+                  paymentFilter === method 
                     ? 'ring-2 ring-red-500 bg-white shadow-md' 
                     : 'bg-gray-50 hover:bg-gray-100'
                 }`}
-                onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
+                onClick={() => setPaymentFilter(paymentFilter === method ? '' : method || '')}
               >
-                <div className={`text-2xl font-bold ${getStatusColor(status as Order['status']).split(' ')[1]}`}>
+                <div className={`text-2xl font-bold ${color.split(' ')[1]}`}>
                   {count}
                 </div>
                 <div className="text-sm text-gray-600">{label}</div>
+                <div className="text-xs text-gray-500 font-semibold">
+                  S/ {total.toFixed(2)}
+                </div>
               </div>
             );
           })}
