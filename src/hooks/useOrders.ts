@@ -45,6 +45,7 @@ export const useOrders = () => {
       status: dbOrder.status,
       total: parseFloat(dbOrder.total as any),
       notes: dbOrder.notes,
+      paymentMethod: dbOrder.payment_method, // Nuevo campo
       items: items,
       createdAt: new Date(dbOrder.created_at),
       updatedAt: new Date(dbOrder.updated_at)
@@ -84,6 +85,7 @@ export const useOrders = () => {
       deliveryAddress?: string;
     };
     notes?: string;
+    paymentMethod?: 'EFECTIVO' | 'YAPE/PLIN' | 'TARJETA'; // Nuevo campo
     items: Array<{
       menuItem: {
         id: string;
@@ -100,7 +102,7 @@ export const useOrders = () => {
         0
       );
 
-      // Crear la orden en Supabase - INCLUIR order_number y kitchen_number en el SELECT
+      // Crear la orden en Supabase - INCLUIR payment_method
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -110,6 +112,7 @@ export const useOrders = () => {
           table_number: orderData.tableNumber,
           source_type: orderData.source.type,
           notes: orderData.notes,
+          payment_method: orderData.paymentMethod, // Nuevo campo
           total: total,
           status: 'pending',
         }])
@@ -202,6 +205,81 @@ export const useOrders = () => {
     }
   };
 
+  // Función para exportar órdenes a CSV
+  const exportOrdersToCSV = (ordersToExport: Order[]) => {
+    if (ordersToExport.length === 0) {
+      alert('No hay órdenes para exportar');
+      return;
+    }
+
+    const headers = [
+      'Número de Orden',
+      'Número de Cocina',
+      'Cliente',
+      'Teléfono',
+      'Tipo',
+      'Mesa',
+      'Dirección',
+      'Método de Pago',
+      'Estado',
+      'Total',
+      'Notas',
+      'Fecha Creación',
+      'Items'
+    ];
+
+    const csvData = ordersToExport.map(order => {
+      const itemsString = order.items.map(item => 
+        `${item.quantity}x ${item.menuItem.name} - S/ ${(item.menuItem.price * item.quantity).toFixed(2)}`
+      ).join('; ');
+
+      return [
+        order.orderNumber || '',
+        order.kitchenNumber || '',
+        order.customerName,
+        order.phone,
+        order.source.type === 'phone' ? 'Cocina' : order.source.type === 'walk-in' ? 'Local' : 'Delivery',
+        order.tableNumber || '',
+        order.address || '',
+        order.paymentMethod || 'NO APLICA',
+        order.status,
+        `S/ ${order.total.toFixed(2)}`,
+        order.notes || '',
+        order.createdAt.toLocaleString(),
+        itemsString
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(field => `"${field}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ventas_${today}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Función para obtener órdenes del día actual
+  const getTodayOrders = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      orderDate.setHours(0, 0, 0, 0);
+      return orderDate.getTime() === today.getTime();
+    });
+  };
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -213,5 +291,7 @@ export const useOrders = () => {
     createOrder,
     updateOrderStatus,
     deleteOrder,
+    exportOrdersToCSV,
+    getTodayOrders
   };
 };
