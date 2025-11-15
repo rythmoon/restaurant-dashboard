@@ -1478,3 +1478,4 @@ const OrderReception: React.FC = () => {
 };
 
 export default OrderReception;
+
