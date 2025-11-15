@@ -60,6 +60,7 @@ const OrderReception: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('Entradas');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'EFECTIVO' | 'YAPE/PLIN' | 'TARJETA'>('EFECTIVO');
   
   // Estado para autocompletado
   const [customerSuggestions, setCustomerSuggestions] = useState<any[]>([]);
@@ -306,6 +307,7 @@ const OrderReception: React.FC = () => {
           ...(activeTab === 'delivery' && { deliveryAddress: address })
         },
         notes: orderNotes,
+        paymentMethod: activeTab !== 'phone' ? paymentMethod : undefined, // Solo para Local y Delivery
         items: cart.map(item => ({
           menuItem: {
             id: item.menuItem.id,
@@ -342,6 +344,7 @@ const OrderReception: React.FC = () => {
             ...(activeTab === 'delivery' && { deliveryAddress: address })
           },
           notes: orderNotes,
+          paymentMethod: activeTab !== 'phone' ? paymentMethod : undefined,
         };
 
         setLastOrder(newOrder);
@@ -355,6 +358,7 @@ const OrderReception: React.FC = () => {
         setEditingPrices({});
         setTempPrices({});
         setShowCartDrawer(false);
+        setPaymentMethod('EFECTIVO'); // Resetear método de pago
         
         // Imprimir ticket
         setTimeout(() => {
@@ -457,6 +461,38 @@ const OrderReception: React.FC = () => {
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                           <div className="text-blue-800 text-sm">
                             <strong>💡 Precios ajustables:</strong> Puedes modificar el precio de Entradas y Platos de Fondo.
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Método de Pago - SOLO para Local y Delivery */}
+                      {(activeTab === 'walk-in' || activeTab === 'delivery') && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <label className="block text-sm font-medium text-purple-800 mb-2">
+                            Método de Pago *
+                          </label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { value: 'EFECTIVO', label: '💵', color: 'bg-green-500' },
+                              { value: 'YAPE/PLIN', label: '📱', color: 'bg-purple-500' },
+                              { value: 'TARJETA', label: '💳', color: 'bg-blue-500' }
+                            ].map((method) => (
+                              <button
+                                key={method.value}
+                                type="button"
+                                onClick={() => setPaymentMethod(method.value as any)}
+                                className={`p-2 rounded-lg text-white font-medium text-sm transition-all ${
+                                  paymentMethod === method.value 
+                                    ? `${method.color} shadow-md transform scale-105` 
+                                    : 'bg-gray-300 text-gray-600'
+                                }`}
+                              >
+                                {method.label}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="text-center text-purple-700 font-semibold mt-2">
+                            {paymentMethod}
                           </div>
                         </div>
                       )}
@@ -705,6 +741,35 @@ const OrderReception: React.FC = () => {
                   />
                 )}
 
+                {/* Método de Pago - SOLO para Local y Delivery */}
+                {(activeTab === 'walk-in' || activeTab === 'delivery') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Método de Pago *
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: 'EFECTIVO', label: '💵 Efectivo', color: 'bg-green-500' },
+                        { value: 'YAPE/PLIN', label: '📱 Yape/Plin', color: 'bg-purple-500' },
+                        { value: 'TARJETA', label: '💳 Tarjeta', color: 'bg-blue-500' }
+                      ].map((method) => (
+                        <button
+                          key={method.value}
+                          type="button"
+                          onClick={() => setPaymentMethod(method.value as any)}
+                          className={`p-2 rounded-lg text-white font-medium text-xs transition-all ${
+                            paymentMethod === method.value 
+                              ? `${method.color} shadow-md transform scale-105` 
+                              : 'bg-gray-300 text-gray-600'
+                          }`}
+                        >
+                          {method.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Notas */}
                 <textarea
                   value={orderNotes}
@@ -869,6 +934,38 @@ const OrderReception: React.FC = () => {
                       </button>
                     ))}
                   </div>
+
+                  {/* Método de Pago - SOLO para Local y Delivery */}
+                  {(activeTab === 'walk-in' || activeTab === 'delivery') && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Método de Pago *
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'EFECTIVO', label: '💵 Efectivo', color: 'border-green-500 bg-green-50 text-green-700' },
+                          { value: 'YAPE/PLIN', label: '📱 Yape/Plin', color: 'border-purple-500 bg-purple-50 text-purple-700' },
+                          { value: 'TARJETA', label: '💳 Tarjeta', color: 'border-blue-500 bg-blue-50 text-blue-700' }
+                        ].map((method) => (
+                          <button
+                            key={method.value}
+                            type="button"
+                            onClick={() => setPaymentMethod(method.value as any)}
+                            className={`w-full p-2 rounded-lg border-2 text-left transition-all ${
+                              paymentMethod === method.value 
+                                ? `${method.color} shadow-sm` 
+                                : 'border-gray-200 text-gray-700'
+                            }`}
+                          >
+                            <div className="font-semibold text-sm">{method.label}</div>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="text-center text-lg font-bold text-gray-900 mt-2">
+                        {paymentMethod}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Formulario del Cliente */}
@@ -1212,6 +1309,38 @@ const OrderReception: React.FC = () => {
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                           <div className="text-blue-800 text-sm">
                             <strong>💡 Precios ajustables:</strong> Puedes modificar el precio de Entradas y Platos de Fondo para pedidos en local.
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Método de Pago - SOLO para Local y Delivery */}
+                      {(activeTab === 'walk-in' || activeTab === 'delivery') && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <label className="block text-sm font-medium text-purple-800 mb-2">
+                            Método de Pago *
+                          </label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { value: 'EFECTIVO', label: '💵', color: 'bg-green-500' },
+                              { value: 'YAPE/PLIN', label: '📱', color: 'bg-purple-500' },
+                              { value: 'TARJETA', label: '💳', color: 'bg-blue-500' }
+                            ].map((method) => (
+                              <button
+                                key={method.value}
+                                type="button"
+                                onClick={() => setPaymentMethod(method.value as any)}
+                                className={`p-2 rounded-lg text-white font-medium text-sm transition-all ${
+                                  paymentMethod === method.value 
+                                    ? `${method.color} shadow-md transform scale-105` 
+                                    : 'bg-gray-300 text-gray-600'
+                                }`}
+                              >
+                                {method.label}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="text-center text-purple-700 font-semibold mt-2">
+                            {paymentMethod}
                           </div>
                         </div>
                       )}
