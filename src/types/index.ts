@@ -34,6 +34,7 @@ export interface Order {
   source: OrderSource;
   notes?: string;
   tableNumber?: string;
+  paymentMethod?: 'EFECTIVO' | 'YAPE/PLIN' | 'TARJETA'; // Nuevo campo
   updatedAt?: Date;
 }
 
@@ -50,6 +51,7 @@ export interface DatabaseOrder {
   status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   total: number;
   notes?: string;
+  payment_method?: 'EFECTIVO' | 'YAPE/PLIN' | 'TARJETA'; // Nuevo campo
   created_at: string;
   updated_at: string;
 }
