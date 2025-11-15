@@ -794,3 +794,4 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order }) => {
 };
 
 export default OrderTicket;
+
