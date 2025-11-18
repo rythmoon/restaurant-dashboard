@@ -1,3 +1,4 @@
+/* index.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -6,35 +7,9 @@
 
 @layer base {
   body {
-    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 50%, #ffedd5 100%);
+    background: #f8fafc;
     min-height: 100vh;
     font-family: 'Inter', sans-serif;
-  }
-}
-
-/* Estilos para impresión */
-@media print {
-  @page {
-    margin: 0;
-    size: 80mm auto;
-  }
-  
-  body {
-    font-family: 'system-ui', 'Courier New', monospace !important;
-    font-size: 12px !important;
-    background: white !important;
-  }
-  
-  .no-print {
-    display: none !important;
-  }
-  
-  .print-ticket {
-    width: 80mm !important;
-    padding: 10px !important;
-    margin: 0 !important;
-    background: white !important;
-    color: black !important;
   }
 }
 
@@ -62,8 +37,8 @@
   }
 }
 
-/* Animaciones para el toast */
-@keyframes slide-in-from-right-full {
+/* Animaciones suaves */
+@keyframes slide-in-from-right {
   from {
     transform: translateX(100%);
     opacity: 0;
@@ -71,24 +46,30 @@
   to {
     transform: translateX(0);
     opacity: 1;
-  }
-}
-
-@keyframes slide-out-to-right-full {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
   }
 }
 
 .animate-in {
-  animation: slide-in-from-right-full 0.3s ease-out;
+  animation: slide-in-from-right 0.3s ease-out;
 }
 
-.animate-out {
-  animation: slide-out-to-right-full 0.3s ease-in;
+/* Estilos para inputs y botones */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #3b82f6;
+}
+
+/* Estilos para cards */
+.card {
+  @apply bg-white rounded-2xl p-6 shadow-sm border border-gray-100;
+}
+
+/* Estilos para botones */
+.btn-primary {
+  @apply bg-blue-500 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all duration-300 font-medium;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium;
 }
