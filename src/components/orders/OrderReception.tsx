@@ -1,10 +1,10 @@
-// OrderReception.tsx (versión simplificada para mostrar el estilo)
+// OrderReception.tsx (versión corregida)
 import React, { useState } from 'react';
-import { Plus, Minus, ShoppingBag } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 
 const OrderReception: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'phone' | 'walk-in' | 'delivery'>('phone');
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart] = useState<any[]>([]); // Removí setCart ya que no se usa en esta versión simplificada
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
