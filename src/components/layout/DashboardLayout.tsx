@@ -1,6 +1,6 @@
 // DashboardLayout.tsx
 import React, { useState } from 'react';
-import { Bell, Settings, User, ChefHat, Sparkles, Menu, X, LogOut } from 'lucide-react';
+import { Bell, Settings, User, ChefHat, Menu, X, LogOut } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface DashboardLayoutProps {
